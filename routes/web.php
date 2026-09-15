@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\PetReportController;
+use App\Http\Controllers\SubscriberController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -26,3 +27,8 @@ Route::patch('/reporte/{token}/estado', [PetReportController::class, 'updateStat
 
 // HU3: API para el radar de mascotas cercanas
 Route::get('/api/reportes/cercanos', [PetReportController::class, 'nearby'])->name('reports.nearby');
+
+// HU3: notificación automática por correo cuando se publica un reporte cercano
+Route::get('/notificaciones', [SubscriberController::class, 'create'])->name('subscribers.create');
+Route::post('/notificaciones', [SubscriberController::class, 'store'])->name('subscribers.store');
+Route::get('/notificaciones/{token}/baja', [SubscriberController::class, 'unsubscribe'])->name('subscribers.unsubscribe');

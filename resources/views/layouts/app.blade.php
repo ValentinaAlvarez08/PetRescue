@@ -11,6 +11,7 @@
         <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
             <a href="{{ route('reports.index') }}" class="text-xl font-bold">🐾 PetRescue</a>
             <nav class="space-x-3 text-sm">
+                <a href="{{ route('subscribers.create') }}" class="hover:underline">🔔 Avísame de reportes cercanos</a>
                 <a href="{{ route('reports.create', 'perdida') }}" class="bg-red-500 hover:bg-red-600 px-3 py-2 rounded">Perdí una mascota</a>
                 <a href="{{ route('reports.create', 'encontrada') }}" class="bg-green-600 hover:bg-green-700 px-3 py-2 rounded">Encontré una mascota</a>
             </nav>

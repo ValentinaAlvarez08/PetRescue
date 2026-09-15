@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\PetReportPublished;
 use App\Http\Requests\StorePetReportRequest;
 use App\Models\PetReport;
 use Illuminate\Http\JsonResponse;
@@ -29,7 +30,7 @@ class PetReportController extends Controller
         }
 
         if ($lat !== null && $lng !== null) {
-            $reports = $query->near((float) $lat, (float) $lng, $radius)->get();
+            $reports = PetReport::near($query, (float) $lat, (float) $lng, $radius);
         } else {
             $reports = $query->latest()->get();
         }
@@ -61,6 +62,9 @@ class PetReportController extends Controller
         }
 
         $report = PetReport::create($data);
+
+        // HU3: avisa automáticamente a los suscriptores cercanos.
+        PetReportPublished::dispatch($report);
 
         // El "enlace de gestión" reemplaza el login: es lo único que
         // necesita el usuario para editar o cerrar su propio caso.
@@ -110,14 +114,14 @@ class PetReportController extends Controller
             'radius' => ['nullable', 'numeric', 'min:0.5', 'max:100'],
         ]);
 
-        $reports = PetReport::query()
-            ->active()
-            ->near(
-                (float) $request->query('lat'),
-                (float) $request->query('lng'),
-                (float) $request->query('radius', 5)
-            )
-            ->get(['id', 'type', 'pet_name', 'description', 'location_reference', 'photo_path', 'created_at']);
+        $reports = PetReport::near(
+            PetReport::query()->active(),
+            (float) $request->query('lat'),
+            (float) $request->query('lng'),
+            (float) $request->query('radius', 5)
+        )->map(fn (PetReport $report) => collect($report->toArray())->only([
+            'id', 'type', 'pet_name', 'description', 'location_reference', 'photo_path', 'created_at', 'distance_km',
+        ]));
 
         return response()->json([
             'count' => $reports->count(),

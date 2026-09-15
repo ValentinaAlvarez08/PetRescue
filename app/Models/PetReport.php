@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Support\GeoDistance;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class PetReport extends Model
@@ -53,20 +55,26 @@ class PetReport extends Model
     }
 
     /**
-     * HU3: reportes activos cerca de una coordenada, usando la fórmula
-     * de Haversine directamente en la consulta (MySQL).
+     * HU3: reportes de $query que caen dentro de $radiusKm de una coordenada,
+     * ordenados por cercanía. El cálculo se hace en PHP (no en SQL) para que
+     * funcione igual en SQLite (desarrollo) y en MySQL (producción).
+     *
+     * @return Collection<int, self>
      */
-    public function scopeNear(Builder $query, float $lat, float $lng, float $radiusKm = 5): Builder
+    public static function near(Builder $query, float $lat, float $lng, float $radiusKm = 5): Collection
     {
-        $haversine = "(6371 * acos(cos(radians($lat))
-            * cos(radians(latitude))
-            * cos(radians(longitude) - radians($lng))
-            + sin(radians($lat))
-            * sin(radians(latitude))))";
+        return $query->get()
+            ->filter(function (self $report) use ($lat, $lng, $radiusKm) {
+                $report->distance_km = GeoDistance::kilometers(
+                    $lat,
+                    $lng,
+                    (float) $report->latitude,
+                    (float) $report->longitude
+                );
 
-        return $query
-            ->selectRaw("pet_reports.*, {$haversine} AS distance_km")
-            ->having('distance_km', '<=', $radiusKm)
-            ->orderBy('distance_km');
+                return $report->distance_km <= $radiusKm;
+            })
+            ->sortBy('distance_km')
+            ->values();
     }
 }
