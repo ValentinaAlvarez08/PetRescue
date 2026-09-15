@@ -33,3 +33,9 @@ php artisan serve
 ```
 
 Abre `http://127.0.0.1:8000`.
+
+## Colaboradores
+- Valentina Alvarez Solarte
+- Juan David Delgado Muñoz
+- Carlos Andres Quenan Alderete
+- Victor Manuel Velasquez Benavides
