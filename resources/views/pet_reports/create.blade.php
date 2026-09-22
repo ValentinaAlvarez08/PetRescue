@@ -32,23 +32,63 @@
                    class="w-full border rounded px-3 py-2">
         </div>
 
+        <div class="grid grid-cols-2 gap-3">
+            <div>
+                <label class="block text-sm font-medium mb-1">Especie *</label>
+                <input type="text" name="species" value="{{ old('species') }}" required
+                       placeholder="Perro, gato..."
+                       class="w-full border rounded px-3 py-2">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Color *</label>
+                <input type="text" name="color" value="{{ old('color') }}" required
+                       class="w-full border rounded px-3 py-2">
+            </div>
+        </div>
+
+        @if ($type === 'perdida')
+            <div>
+                <label class="block text-sm font-medium mb-1">Raza *</label>
+                <input type="text" name="breed" value="{{ old('breed') }}" required
+                       class="w-full border rounded px-3 py-2">
+            </div>
+        @else
+            <div>
+                <label class="block text-sm font-medium mb-1">Tamaño *</label>
+                <select name="size" required class="w-full border rounded px-3 py-2">
+                    <option value="">Selecciona...</option>
+                    @foreach (['pequeño', 'mediano', 'grande'] as $option)
+                        <option value="{{ $option }}" @selected(old('size') === $option)>{{ ucfirst($option) }}</option>
+                    @endforeach
+                </select>
+            </div>
+        @endif
+
         <div>
             <label class="block text-sm font-medium mb-1">Descripción *</label>
             <textarea name="description" rows="3" required
                       class="w-full border rounded px-3 py-2"
-                      placeholder="Raza, color, tamaño, señas particulares...">{{ old('description') }}</textarea>
+                      placeholder="Señas particulares, comportamiento...">{{ old('description') }}</textarea>
         </div>
 
         <div>
-            <label class="block text-sm font-medium mb-1">Foto</label>
-            <input type="file" name="photo" accept="image/*" class="w-full border rounded px-3 py-2">
+            <label class="block text-sm font-medium mb-1">Foto *</label>
+            <input type="file" name="photo" accept="image/*" required class="w-full border rounded px-3 py-2">
         </div>
 
-        <div>
-            <label class="block text-sm font-medium mb-1">Número de contacto (WhatsApp/teléfono) *</label>
-            <input type="text" name="contact_phone" value="{{ old('contact_phone') }}" required
-                   class="w-full border rounded px-3 py-2">
+        <div class="grid grid-cols-2 gap-3">
+            <div>
+                <label class="block text-sm font-medium mb-1">Teléfono / WhatsApp</label>
+                <input type="text" name="contact_phone" value="{{ old('contact_phone') }}"
+                       class="w-full border rounded px-3 py-2">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Correo electrónico</label>
+                <input type="email" name="contact_email" value="{{ old('contact_email') }}"
+                       class="w-full border rounded px-3 py-2">
+            </div>
         </div>
+        <p class="text-xs text-gray-500 -mt-2">Deja al menos un medio de contacto (teléfono o correo).</p>
 
         <div>
             <label class="block text-sm font-medium mb-1">Punto de referencia</label>

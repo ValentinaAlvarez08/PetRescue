@@ -35,8 +35,20 @@ class PetReportController extends Controller
             $reports = $query->latest()->get();
         }
 
+        $mapReports = $reports->map(fn (PetReport $report) => [
+            'lat' => (float) $report->latitude,
+            'lng' => (float) $report->longitude,
+            'type' => $report->type,
+            'status' => $report->status,
+            'pet_name' => $report->pet_name,
+            'species' => $report->species,
+            'photo_url' => $report->photo_path ? Storage::url($report->photo_path) : null,
+            'url' => route('reports.show', $report->management_token),
+        ])->values();
+
         return view('pet_reports.index', [
             'reports' => $reports,
+            'mapReports' => $mapReports,
             'lat' => $lat,
             'lng' => $lng,
             'radius' => $radius,
@@ -120,7 +132,9 @@ class PetReportController extends Controller
             (float) $request->query('lng'),
             (float) $request->query('radius', 5)
         )->map(fn (PetReport $report) => collect($report->toArray())->only([
-            'id', 'type', 'pet_name', 'description', 'location_reference', 'photo_path', 'created_at', 'distance_km',
+            'id', 'type', 'species', 'breed', 'color', 'size', 'pet_name', 'status',
+            'description', 'location_reference', 'photo_path', 'latitude', 'longitude',
+            'created_at', 'distance_km',
         ]));
 
         return response()->json([

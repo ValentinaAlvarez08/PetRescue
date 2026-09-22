@@ -17,13 +17,26 @@
             </span>
 
             <h1 class="text-xl font-bold mt-1">{{ $report->pet_name ?: 'Mascota sin nombre' }}</h1>
+
+            <p class="text-sm text-gray-600 mt-1">
+                {{ $report->species }}
+                @if ($report->breed) · {{ $report->breed }} @endif
+                · {{ $report->color }}
+                @if ($report->size) · Tamaño {{ $report->size }} @endif
+            </p>
+
             <p class="text-gray-700 mt-2">{{ $report->description }}</p>
 
             @if ($report->location_reference)
                 <p class="text-sm text-gray-500 mt-2">📍 {{ $report->location_reference }}</p>
             @endif
 
-            <p class="text-sm text-gray-500 mt-1">📞 Contacto: {{ $report->contact_phone }}</p>
+            @if ($report->contact_phone)
+                <p class="text-sm text-gray-500 mt-1">📞 Contacto: {{ $report->contact_phone }}</p>
+            @endif
+            @if ($report->contact_email)
+                <p class="text-sm text-gray-500 mt-1">✉️ Contacto: {{ $report->contact_email }}</p>
+            @endif
         </div>
     </div>
 
