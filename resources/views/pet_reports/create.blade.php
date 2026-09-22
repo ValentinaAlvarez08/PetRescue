@@ -97,16 +97,24 @@
                    class="w-full border rounded px-3 py-2">
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
-            <div>
-                <label class="block text-sm font-medium mb-1">Latitud *</label>
-                <input type="text" name="latitude" id="latitude" value="{{ old('latitude') }}" required
-                       class="w-full border rounded px-3 py-2" readonly>
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Longitud *</label>
-                <input type="text" name="longitude" id="longitude" value="{{ old('longitude') }}" required
-                       class="w-full border rounded px-3 py-2" readonly>
+        <div>
+            <label class="block text-sm font-medium mb-1">Ubicación *</label>
+            <p class="text-xs text-gray-500 mb-2">
+                Usa tu ubicación actual o ingresa la latitud y longitud manualmente (por ejemplo, copiándolas desde Google Maps).
+            </p>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs text-gray-600 mb-1">Latitud *</label>
+                    <input type="text" name="latitude" id="latitude" value="{{ old('latitude') }}" required
+                           inputmode="decimal" placeholder="Ej: 10.4806"
+                           class="w-full border rounded px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-600 mb-1">Longitud *</label>
+                    <input type="text" name="longitude" id="longitude" value="{{ old('longitude') }}" required
+                           inputmode="decimal" placeholder="Ej: -66.9036"
+                           class="w-full border rounded px-3 py-2">
+                </div>
             </div>
         </div>
 
@@ -114,6 +122,7 @@
                 class="bg-gray-200 hover:bg-gray-300 text-sm px-3 py-2 rounded">
             📍 Usar mi ubicación actual
         </button>
+        <span id="location-status" class="text-xs text-gray-500 ml-2"></span>
 
         <div>
             <button type="submit"
@@ -125,15 +134,18 @@
 
     <script>
         document.getElementById('btn-location').addEventListener('click', function () {
+            var status = document.getElementById('location-status');
             if (!navigator.geolocation) {
-                alert('Tu navegador no soporta geolocalización. Puedes escribir las coordenadas manualmente.');
+                status.textContent = 'Tu navegador no soporta geolocalización. Ingresa las coordenadas manualmente.';
                 return;
             }
+            status.textContent = 'Obteniendo ubicación...';
             navigator.geolocation.getCurrentPosition(function (pos) {
                 document.getElementById('latitude').value = pos.coords.latitude;
                 document.getElementById('longitude').value = pos.coords.longitude;
+                status.textContent = 'Ubicación obtenida.';
             }, function () {
-                alert('No se pudo obtener tu ubicación.');
+                status.textContent = 'No se pudo obtener tu ubicación. Ingresa las coordenadas manualmente.';
             });
         });
     </script>
