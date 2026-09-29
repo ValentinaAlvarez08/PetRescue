@@ -23,7 +23,9 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        // Datos simulados para probar el listado de reportes sin llenarlo a mano.
-        PetReport::factory()->count(8)->create();
+        // Datos simulados para probar el listado de reportes sin llenarlo a mano:
+        // una mitad de mascotas perdidas y otra de encontradas.
+        PetReport::factory()->count(6)->perdida()->create();
+        PetReport::factory()->count(6)->encontrada()->create();
     }
 }
