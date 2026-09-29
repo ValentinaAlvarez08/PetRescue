@@ -20,11 +20,14 @@ class PetReport extends Model
         'breed',
         'color',
         'size',
+        'sex',
+        'event_date',
         'pet_name',
         'description',
         'photo_path',
         'contact_phone',
         'contact_email',
+        'contact_whatsapp',
         'latitude',
         'longitude',
         'location_reference',
@@ -34,6 +37,8 @@ class PetReport extends Model
     protected $casts = [
         'latitude' => 'decimal:7',
         'longitude' => 'decimal:7',
+        'event_date' => 'date',
+        'contact_whatsapp' => 'boolean',
     ];
 
     protected static function booted(): void
@@ -47,6 +52,54 @@ class PetReport extends Model
                 $report->status = 'activo';
             }
         });
+    }
+
+    public function getRouteKeyName(): string
+    {
+        // La URL pública usa el id; el token privado solo se usa para gestionar.
+        return 'id';
+    }
+
+    /** Etiqueta legible de la especie (ej. "perro" -> "Perro"). */
+    public function getSpeciesLabelAttribute(): string
+    {
+        return config("pets.species.{$this->species}.label", ucfirst((string) $this->species));
+    }
+
+    public function getSpeciesEmojiAttribute(): string
+    {
+        return config("pets.species.{$this->species}.emoji", '🐾');
+    }
+
+    /**
+     * Los colores se guardan como llaves separadas por coma ("negro,blanco").
+     * Los reportes del Sprint 1 guardaban texto libre: se muestran tal cual.
+     */
+    public function getColorLabelsAttribute(): string
+    {
+        $catalog = config('pets.colors');
+
+        return collect(explode(',', (string) $this->color))
+            ->map(fn ($key) => trim($key))
+            ->filter()
+            ->map(fn ($key) => $catalog[$key]['label'] ?? $key)
+            ->implode(', ');
+    }
+
+    public function getDisplayNameAttribute(): string
+    {
+        return $this->pet_name ?: ($this->type === 'perdida' ? 'Mascota perdida' : 'Mascota encontrada');
+    }
+
+    /** Número en formato internacional para enlaces de WhatsApp (HU-06). */
+    public function getWhatsappNumberAttribute(): ?string
+    {
+        $digits = preg_replace('/\D/', '', (string) $this->contact_phone);
+        if (! $digits) {
+            return null;
+        }
+
+        return strlen($digits) === 10 ? '57'.$digits : $digits;
     }
 
     public function scopeActive(Builder $query): Builder

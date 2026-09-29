@@ -40,10 +40,11 @@ class PetReportController extends Controller
             'lng' => (float) $report->longitude,
             'type' => $report->type,
             'status' => $report->status,
-            'pet_name' => $report->pet_name,
-            'species' => $report->species,
+            'pet_name' => $report->display_name,
+            'species' => $report->species_label,
+            'emoji' => $report->species_emoji,
             'photo_url' => $report->photo_path ? Storage::url($report->photo_path) : null,
-            'url' => route('reports.show', $report->management_token),
+            'url' => route('reports.show', $report),
         ])->values();
 
         return view('pet_reports.index', [
@@ -52,6 +53,7 @@ class PetReportController extends Controller
             'lat' => $lat,
             'lng' => $lng,
             'radius' => $radius,
+            'type' => $request->query('type'),
         ]);
     }
 
@@ -62,12 +64,18 @@ class PetReportController extends Controller
     {
         abort_unless(in_array($type, ['perdida', 'encontrada'], true), 404);
 
-        return view('pet_reports.create', ['type' => $type]);
+        return view('pet_reports.create', [
+            'type' => $type,
+            'species' => config('pets.species'),
+            'colors' => config('pets.colors'),
+            'sizes' => config('pets.sizes'),
+            'sexes' => config('pets.sexes'),
+        ]);
     }
 
     public function store(StorePetReportRequest $request): RedirectResponse
     {
-        $data = $request->validated();
+        $data = $request->reportData();
 
         if ($request->hasFile('photo')) {
             $data['photo_path'] = $request->file('photo')->store('pet-reports', 'public');
@@ -81,22 +89,33 @@ class PetReportController extends Controller
         // El "enlace de gestión" reemplaza el login: es lo único que
         // necesita el usuario para editar o cerrar su propio caso.
         return redirect()
-            ->route('reports.show', $report->management_token)
+            ->route('reports.manage', $report->management_token)
             ->with('status', 'Reporte publicado. Guarda este enlace para darle seguimiento; es el único acceso que tendrás a tu reporte.');
     }
 
     /**
-     * Vista de un reporte. Si coincide el token en la URL con el guardado
-     * en BD, se muestran también las acciones de gestión (marcar reunido,
-     * cerrar caso) — así no se requiere sesión ni cuenta.
+     * Vista pública de un reporte (la que se comparte y aparece en el
+     * listado). No muestra las acciones de gestión.
      */
-    public function show(string $token): View
+    public function show(PetReport $report): View
+    {
+        return view('pet_reports.show', [
+            'report' => $report,
+            'canManage' => false,
+        ]);
+    }
+
+    /**
+     * Vista privada de gestión: solo quien tiene el enlace con el token
+     * (entregado al publicar) puede marcar reunido o cerrar el caso.
+     */
+    public function manage(string $token): View
     {
         $report = PetReport::where('management_token', $token)->firstOrFail();
 
         return view('pet_reports.show', [
             'report' => $report,
-            'canManage' => true, // quien tiene el enlace es, por definición, el dueño del reporte
+            'canManage' => true,
         ]);
     }
 
