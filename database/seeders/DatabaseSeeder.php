@@ -27,5 +27,8 @@ class DatabaseSeeder extends Seeder
         // una mitad de mascotas perdidas y otra de encontradas.
         PetReport::factory()->count(6)->perdida()->create();
         PetReport::factory()->count(6)->encontrada()->create();
+
+        // Sprint 2 — HU-16: directorio de servicios (datos de ejemplo).
+        $this->call(BusinessSeeder::class);
     }
 }
