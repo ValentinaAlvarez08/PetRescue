@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class PetReport extends Model
@@ -84,6 +85,22 @@ class PetReport extends Model
             ->filter()
             ->map(fn ($key) => $catalog[$key]['label'] ?? $key)
             ->implode(', ');
+    }
+
+    /**
+     * URL pública de la foto. Las fotos subidas viven en el disco "public";
+     * las de los datos de prueba (DatabaseSeeder) vienen incluidas en el
+     * repositorio, en public/images/seed/.
+     */
+    public function getPhotoUrlAttribute(): ?string
+    {
+        if (! $this->photo_path) {
+            return null;
+        }
+
+        return Str::startsWith($this->photo_path, 'images/')
+            ? asset($this->photo_path)
+            : Storage::url($this->photo_path);
     }
 
     public function getDisplayNameAttribute(): string

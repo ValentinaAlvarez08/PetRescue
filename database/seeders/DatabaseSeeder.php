@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\PetReport;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -23,10 +22,9 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        // Datos simulados para probar el listado de reportes sin llenarlo a mano:
-        // una mitad de mascotas perdidas y otra de encontradas.
-        PetReport::factory()->count(6)->perdida()->create();
-        PetReport::factory()->count(6)->encontrada()->create();
+        // Datos de prueba para el listado de reportes: mascotas perdidas y
+        // encontradas en Pasto, cada una con su foto (public/images/seed/).
+        $this->call(PetReportSeeder::class);
 
         // Sprint 2 — HU-16: directorio de servicios (datos de ejemplo).
         $this->call(BusinessSeeder::class);

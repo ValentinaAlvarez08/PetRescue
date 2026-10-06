@@ -29,7 +29,7 @@
 <div class="mt-4 grid lg:grid-cols-[1.2fr_1fr] gap-6">
     <article class="bg-white rounded-3xl shadow-soft border border-ink-100 overflow-hidden">
         @if ($report->photo_path)
-            <img src="{{ Storage::url($report->photo_path) }}" alt="Foto de {{ $report->display_name }}" class="w-full max-h-[28rem] object-cover">
+            <img src="{{ $report->photo_url }}" alt="Foto de {{ $report->display_name }}" class="w-full max-h-[28rem] object-cover">
         @else
             <div class="h-56 grid place-items-center bg-ink-100 text-7xl">{{ $report->species_emoji }}</div>
         @endif

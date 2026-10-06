@@ -8,7 +8,6 @@ use App\Models\PetReport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class PetReportController extends Controller
@@ -43,7 +42,7 @@ class PetReportController extends Controller
             'pet_name' => $report->display_name,
             'species' => $report->species_label,
             'emoji' => $report->species_emoji,
-            'photo_url' => $report->photo_path ? Storage::url($report->photo_path) : null,
+            'photo_url' => $report->photo_url,
             'url' => route('reports.show', $report),
         ])->values();
 
@@ -154,7 +153,7 @@ class PetReportController extends Controller
             'id', 'type', 'species', 'breed', 'color', 'size', 'pet_name', 'status',
             'description', 'location_reference', 'photo_path', 'latitude', 'longitude',
             'created_at', 'distance_km',
-        ]));
+        ])->put('photo_url', $report->photo_url));
 
         return response()->json([
             'count' => $reports->count(),
