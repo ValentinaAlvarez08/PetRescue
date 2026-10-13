@@ -130,6 +130,20 @@ class PetReport extends Model
     }
 
     /**
+     * Sprint 3 — HU-04: reportes que tienen $color entre sus colores.
+     * La columna guarda llaves separadas por coma ("negro,blanco"), así que
+     * se compara la llave completa para que "gris" no coincida con otra.
+     */
+    public function scopeWithColor(Builder $query, string $color): Builder
+    {
+        return $query->where(fn (Builder $q) => $q
+            ->where('color', $color)
+            ->orWhere('color', 'like', $color.',%')
+            ->orWhere('color', 'like', '%,'.$color)
+            ->orWhere('color', 'like', '%,'.$color.',%'));
+    }
+
+    /**
      * HU3: reportes de $query que caen dentro de $radiusKm de una coordenada,
      * ordenados por cercanía. El cálculo se hace en PHP (no en SQL) para que
      * funcione igual en SQLite (desarrollo) y en MySQL (producción).

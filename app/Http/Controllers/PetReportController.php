@@ -12,20 +12,34 @@ use Illuminate\View\View;
 
 class PetReportController extends Controller
 {
+    /** HU-04: radios que se ofrecen en el filtro (km). */
+    private const RADIUS_OPTIONS = [1, 2, 5, 10, 20];
+
     /**
      * Listado público. Si llegan lat/lng, se muestran ordenados por
      * cercanía (HU3). Sin esos parámetros, se listan los más recientes.
+     *
+     * Sprint 3 — HU-04: filtros por tipo, especie, color y radio (1 a 20 km).
+     * Todos viajan en la URL (query string) para poder compartir la búsqueda;
+     * un valor que no exista en config/pets.php simplemente se ignora.
      */
     public function index(Request $request): View
     {
-        $lat = $request->query('lat');
-        $lng = $request->query('lng');
-        $radius = (float) $request->query('radius', 5);
+        $filters = $this->reportFilters($request);
+        $lat = is_numeric($request->query('lat')) ? (float) $request->query('lat') : null;
+        $lng = is_numeric($request->query('lng')) ? (float) $request->query('lng') : null;
+        $radius = $filters['radius'];
 
         $query = PetReport::query()->active();
 
-        if ($request->filled('type')) {
-            $query->ofType($request->query('type'));
+        if ($filters['type']) {
+            $query->ofType($filters['type']);
+        }
+        if ($filters['species']) {
+            $query->where('species', $filters['species']);
+        }
+        if ($filters['color']) {
+            $query->withColor($filters['color']);
         }
 
         if ($lat !== null && $lng !== null) {
@@ -52,8 +66,31 @@ class PetReportController extends Controller
             'lat' => $lat,
             'lng' => $lng,
             'radius' => $radius,
-            'type' => $request->query('type'),
+            'type' => $filters['type'],
+            'filters' => $filters,
+            'hasFilters' => $filters['type'] || $filters['species'] || $filters['color'] || $lat !== null,
+            'speciesCatalog' => config('pets.species'),
+            'colorsCatalog' => config('pets.colors'),
+            'radiusOptions' => self::RADIUS_OPTIONS,
         ]);
+    }
+
+    /**
+     * HU-04: lee los filtros de la URL y descarta los valores que no están
+     * en los catálogos. El radio se limita a 1–20 km.
+     */
+    private function reportFilters(Request $request): array
+    {
+        $pick = fn (string $key, array $allowed) => in_array($request->query($key), $allowed, true) ? $request->query($key) : null;
+
+        $radius = is_numeric($request->query('radius')) ? (float) $request->query('radius') : 5.0;
+
+        return [
+            'type' => $pick('type', ['perdida', 'encontrada']),
+            'species' => $pick('species', array_keys(config('pets.species'))),
+            'color' => $pick('color', array_keys(config('pets.colors'))),
+            'radius' => min(20.0, max(1.0, $radius)),
+        ];
     }
 
     /**

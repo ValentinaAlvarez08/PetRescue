@@ -28,5 +28,8 @@ class DatabaseSeeder extends Seeder
 
         // Sprint 2 — HU-16: directorio de servicios (datos de ejemplo).
         $this->call(BusinessSeeder::class);
+
+        // Sprint 3 — HU-17 / HU-18: publicaciones y comentarios (datos de ejemplo).
+        $this->call(CommunitySeeder::class);
     }
 }
