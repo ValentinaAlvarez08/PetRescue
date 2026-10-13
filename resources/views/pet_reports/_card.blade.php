@@ -3,7 +3,7 @@
    class="group block bg-white rounded-3xl border border-ink-100 shadow-soft overflow-hidden hover:-translate-y-0.5 hover:shadow-lg transition">
     <div class="relative h-44 bg-ink-100">
         @if ($report->photo_path)
-            <img src="{{ Storage::url($report->photo_path) }}" alt="" class="w-full h-full object-cover" loading="lazy">
+            <img src="{{ $report->photo_url }}" alt="" class="w-full h-full object-cover" loading="lazy">
         @else
             <div class="w-full h-full grid place-items-center text-6xl">{{ $report->species_emoji }}</div>
         @endif

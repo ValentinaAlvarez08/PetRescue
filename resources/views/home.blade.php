@@ -91,6 +91,11 @@
                     <span>
                         <span class="block font-extrabold">{{ $topic['label'] }}</span>
                         <span class="block text-sm text-ink-500 mt-0.5">{{ $topic['blurb'] }}</span>
+                        {{-- Sprint 3 — HU-17: publicaciones del tema --}}
+                        @php $count = (int) ($postsByTopic[$slug] ?? 0); @endphp
+                        <span class="inline-block mt-2 text-xs font-extrabold text-brand-700 bg-brand-50 rounded-full px-2.5 py-0.5" data-role="topic-count">
+                            {{ $count }} {{ $count === 1 ? 'publicación' : 'publicaciones' }}
+                        </span>
                     </span>
                 </a>
             @endforeach

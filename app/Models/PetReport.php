@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class PetReport extends Model
@@ -86,6 +87,22 @@ class PetReport extends Model
             ->implode(', ');
     }
 
+    /**
+     * URL pública de la foto. Las fotos subidas viven en el disco "public";
+     * las de los datos de prueba (DatabaseSeeder) vienen incluidas en el
+     * repositorio, en public/images/seed/.
+     */
+    public function getPhotoUrlAttribute(): ?string
+    {
+        if (! $this->photo_path) {
+            return null;
+        }
+
+        return Str::startsWith($this->photo_path, 'images/')
+            ? asset($this->photo_path)
+            : Storage::url($this->photo_path);
+    }
+
     public function getDisplayNameAttribute(): string
     {
         return $this->pet_name ?: ($this->type === 'perdida' ? 'Mascota perdida' : 'Mascota encontrada');
@@ -110,6 +127,20 @@ class PetReport extends Model
     public function scopeOfType(Builder $query, string $type): Builder
     {
         return $query->where('type', $type);
+    }
+
+    /**
+     * Sprint 3 — HU-04: reportes que tienen $color entre sus colores.
+     * La columna guarda llaves separadas por coma ("negro,blanco"), así que
+     * se compara la llave completa para que "gris" no coincida con otra.
+     */
+    public function scopeWithColor(Builder $query, string $color): Builder
+    {
+        return $query->where(fn (Builder $q) => $q
+            ->where('color', $color)
+            ->orWhere('color', 'like', $color.',%')
+            ->orWhere('color', 'like', '%,'.$color)
+            ->orWhere('color', 'like', '%,'.$color.',%'));
     }
 
     /**
