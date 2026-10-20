@@ -40,6 +40,7 @@ class PetReport extends Model
         'longitude' => 'decimal:7',
         'event_date' => 'date',
         'contact_whatsapp' => 'boolean',
+        'reunited_at' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -51,6 +52,15 @@ class PetReport extends Model
             }
             if (empty($report->status)) {
                 $report->status = 'activo';
+            }
+        });
+
+        // HU-12: fecha del reencuentro para las historias de éxito.
+        static::saving(function (PetReport $report) {
+            if ($report->status !== 'reunido') {
+                $report->reunited_at = null;
+            } elseif (! $report->reunited_at) {
+                $report->reunited_at = now();
             }
         });
     }
@@ -117,6 +127,42 @@ class PetReport extends Model
         }
 
         return strlen($digits) === 10 ? '57'.$digits : $digits;
+    }
+
+    /**
+     * HU-09 (CID 4): enlace que se comparte. Siempre es el público por id,
+     * nunca el enlace privado de gestión con el token.
+     */
+    public function getPublicUrlAttribute(): string
+    {
+        return route('reports.show', $this);
+    }
+
+    /** HU-09 (CID 2): texto prellenado para las redes sociales. */
+    public function getShareTextAttribute(): string
+    {
+        $place = $this->location_reference ? " cerca de {$this->location_reference}" : '';
+
+        return $this->type === 'perdida'
+            ? "🐾 ¡Ayúdanos a encontrar a {$this->display_name} ({$this->species_label})! Se perdió{$place}. Si la ves, mira el reporte en PetRescue:"
+            : "🐾 Encontramos esta mascota ({$this->species_label}){$place}. ¿Sabes quién es su familia? Mira el reporte en PetRescue:";
+    }
+
+    /**
+     * HU-09 (CID 1 y 2): enlaces para compartir en cada red social.
+     *
+     * @return array<string, string>
+     */
+    public function shareLinks(): array
+    {
+        $url = rawurlencode($this->public_url);
+        $text = rawurlencode($this->share_text);
+
+        return [
+            'whatsapp' => "https://wa.me/?text={$text}%20{$url}",
+            'facebook' => "https://www.facebook.com/sharer/sharer.php?u={$url}",
+            'x' => "https://x.com/intent/post?text={$text}&url={$url}",
+        ];
     }
 
     public function scopeActive(Builder $query): Builder

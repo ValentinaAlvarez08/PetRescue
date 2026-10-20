@@ -2,9 +2,6 @@
 
 namespace App\Providers;
 
-use App\Events\PetReportPublished;
-use App\Listeners\NotifyNearbySubscribers;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -22,6 +19,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Event::listen(PetReportPublished::class, NotifyNearbySubscribers::class);
+        // NotifyNearbySubscribers escucha PetReportPublished por el
+        // descubrimiento automático de eventos de Laravel (app/Listeners).
+        // No se registra aquí a mano: quedaría duplicado y cada suscriptor
+        // recibiría dos correos por el mismo reporte (HU-11, CID 3).
     }
 }

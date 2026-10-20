@@ -19,21 +19,9 @@ class NearbyNotificationTest extends TestCase
         Notification::fake();
         Storage::fake('public');
 
-        $near = Subscriber::create([
-            'name' => 'Vale',
-            'email' => 'vale@example.com',
-            'latitude' => 4.6584,
-            'longitude' => -74.0932,
-            'radius_km' => 5,
-        ]);
+        $near = $this->subscriberWithZone('vale@example.com', 4.6584, -74.0932, 5);
 
-        $far = Subscriber::create([
-            'name' => 'Lejano',
-            'email' => 'lejano@example.com',
-            'latitude' => 4.9,
-            'longitude' => -74.9,
-            'radius_km' => 5,
-        ]);
+        $far = $this->subscriberWithZone('lejano@example.com', 4.9, -74.9, 5);
 
         $response = $this->post('/reportar', $this->payload('perdida', 'Perrito café perdido cerca del parque'));
 
@@ -48,15 +36,8 @@ class NearbyNotificationTest extends TestCase
         Notification::fake();
         Storage::fake('public');
 
-        $subscriber = Subscriber::create([
-            'name' => 'Vale',
-            'email' => 'vale@example.com',
-            'latitude' => 4.6584,
-            'longitude' => -74.0932,
-            'radius_km' => 5,
-        ]);
-        $subscriber->notifications_enabled = false;
-        $subscriber->save();
+        $subscriber = $this->subscriberWithZone('vale@example.com', 4.6584, -74.0932, 5);
+        $subscriber->zones()->update(['active' => false]);
 
         $this->post('/reportar', $this->payload('encontrada', 'Gato encontrado cerca del parque'));
 
@@ -68,13 +49,7 @@ class NearbyNotificationTest extends TestCase
         Notification::fake();
         Storage::fake('public');
 
-        $subscriber = Subscriber::create([
-            'name' => 'Vale',
-            'email' => 'vale@example.com',
-            'latitude' => 4.6584,
-            'longitude' => -74.0932,
-            'radius_km' => 5,
-        ]);
+        $subscriber = $this->subscriberWithZone('vale@example.com', 4.6584, -74.0932, 5);
 
         $this->post('/reportar', $this->payload('perdida', 'Perrito café perdido cerca del parque'));
 
@@ -85,6 +60,14 @@ class NearbyNotificationTest extends TestCase
             return str_contains($mail->actionUrl, '/reportes/'.$notification->report->id)
                 && ! str_contains($mail->actionUrl, $notification->report->management_token);
         });
+    }
+
+    private function subscriberWithZone(string $email, float $lat, float $lng, int $radius): Subscriber
+    {
+        $subscriber = Subscriber::create(['name' => 'Vale', 'email' => $email]);
+        $subscriber->zones()->create(['label' => 'Casa', 'latitude' => $lat, 'longitude' => $lng, 'radius_km' => $radius]);
+
+        return $subscriber;
     }
 
     private function payload(string $type, string $description): array
