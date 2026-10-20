@@ -28,6 +28,30 @@ darle seguimiento, evitando la necesidad de login.
 
 Pruebas: `php artisan test` (incluye `tests/Feature/Sprint2Test.php`).
 
+## Sprint 3 — Comunidad por temas, comentarios y filtros (HU-17, HU-18, HU-04)
+
+- **HU-17**: los espacios `/comunidad/{tema}` (rescatadas, reactivas, entrenamiento, salud, alimentación, adopción)
+  ya permiten publicar. "Nueva publicación" pide apodo, título (máx. 120), texto (20 a 2000) y foto opcional
+  (JPG/PNG/WEBP, máx. 5 MB). Las publicaciones se listan de la más reciente a la más antigua, 10 por página.
+  Quien publica recibe un enlace privado `/publicacion/{token}` para editarla o eliminarla (sin login).
+  Un tema que no está en `config/community.php` responde 404. La página principal muestra cuántas
+  publicaciones tiene cada tema.
+- **HU-18**: comentarios (apodo + 5 a 1000 caracteres) debajo de cada publicación, con su fecha, y botón
+  **"Me sirvió"**. El servidor guarda una cookie por publicación (`helpful_post_{id}`) para que el mismo
+  navegador no sume dos veces.
+- **HU-04**: `/reportes` filtra por tipo, especie, color (catálogos de `config/pets.php`) y zona: con
+  "Ver cerca de mí" se elige un radio de 1 a 20 km y los reportes se ordenan por cercanía. El listado y el mapa
+  muestran lo mismo. Los filtros viajan en la URL (ej. `/reportes?type=perdida&species=gato&color=gris`)
+  para compartir la búsqueda; si nada coincide aparece "No hay reportes con esos filtros" y "Limpiar filtros".
+
+Tablas nuevas: `posts` y `comments` (migraciones `2026_10_13_*`).
+
+> Las publicaciones y comentarios de `CommunitySeeder` son **datos de ejemplo ficticios**. En una base que ya
+> tiene datos se pueden cargar solos con `php artisan db:seed --class=CommunitySeeder` (no hace nada si ya
+> hay publicaciones).
+
+Pruebas: `php artisan test` (incluye `tests/Feature/Sprint3Test.php`).
+
 ## Requisitos
 
 - PHP 8.2+, Composer

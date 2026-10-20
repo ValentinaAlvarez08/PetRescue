@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Business;
 use App\Models\PetReport;
+use App\Models\Post;
 use Illuminate\View\View;
 
 /**
@@ -28,6 +29,10 @@ class HomeController extends Controller
             'directory' => config('community.directory'),
             'countsByCategory' => $countsByCategory,
             'topics' => config('community.topics'),
+            // Sprint 3 — HU-17: cuántas publicaciones tiene cada tema.
+            'postsByTopic' => Post::selectRaw('topic, count(*) as total')
+                ->groupBy('topic')
+                ->pluck('total', 'topic'),
         ]);
     }
 }
