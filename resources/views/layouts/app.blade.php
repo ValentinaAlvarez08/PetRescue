@@ -63,7 +63,8 @@
                 <a href="{{ route('reports.index') }}" class="{{ $navLink(request()->routeIs('reports.index', 'reports.show')) }}">Reportes</a>
                 <a href="{{ route('directory.index') }}" class="{{ $navLink(request()->routeIs('directory.*')) }}">Directorio</a>
                 <a href="{{ route('home') }}#comunidad" class="{{ $navLink(request()->routeIs('community.*')) }}">Comunidad</a>
-                <a href="{{ route('subscribers.create') }}" class="{{ $navLink(request()->routeIs('subscribers.*')) }}">Avisos</a>
+                <a href="{{ route('subscribers.create') }}" class="{{ $navLink(request()->routeIs('subscribers.*')) }}">Alertas</a>
+                <a href="{{ route('stats.index') }}" class="{{ $navLink(request()->routeIs('stats.*')) }}">Estadísticas</a>
                 <span class="hidden md:block w-px h-6 bg-ink-200 mx-2"></span>
                 <a href="{{ route('reports.create', 'perdida') }}"
                    class="px-4 py-2 rounded-xl font-bold text-white bg-rose-500 hover:bg-rose-600 text-center">Perdí mi mascota</a>
@@ -94,7 +95,8 @@
                 <ul class="space-y-1">
                     <li><a class="hover:text-brand-700" href="{{ route('reports.create', 'perdida') }}">Reportar mascota perdida</a></li>
                     <li><a class="hover:text-brand-700" href="{{ route('reports.create', 'encontrada') }}">Reportar mascota encontrada</a></li>
-                    <li><a class="hover:text-brand-700" href="{{ route('subscribers.create') }}">Recibir avisos de mi zona</a></li>
+                    <li><a class="hover:text-brand-700" href="{{ route('subscribers.create') }}">Recibir alertas de mis zonas</a></li>
+                    <li><a class="hover:text-brand-700" href="{{ route('stats.index') }}">Estadísticas de reencuentros</a></li>
                 </ul>
             </div>
             <div>

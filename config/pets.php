@@ -96,4 +96,12 @@ return [
     // Centro por defecto de los mapas: Pasto, Nariño.
     'default_center' => ['lat' => 1.2136, 'lng' => -77.2811, 'zoom' => 13],
 
+    // Sprint 4 — HU-11: alertas por correo de varias zonas.
+    'alerts' => [
+        'radius_min' => 1,
+        'radius_max' => 20,
+        'max_zones' => 5,
+        'suggested_labels' => ['Casa', 'Trabajo', 'Finca', 'Casa de mis papás', 'Universidad'],
+    ],
+
 ];
