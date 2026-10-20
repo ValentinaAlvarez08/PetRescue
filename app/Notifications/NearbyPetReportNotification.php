@@ -43,7 +43,7 @@ class NearbyPetReportNotification extends Notification implements ShouldQueue
         }
 
         $message
-            ->action('Ver el reporte y colaborar', route('reports.show', $this->report->management_token))
+            ->action('Ver el reporte y colaborar', route('reports.show', $this->report))
             ->line('Recibes esto porque activaste avisos de reportes cercanos en PetRescue.');
 
         if ($notifiable instanceof \App\Models\Subscriber) {

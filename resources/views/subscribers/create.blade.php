@@ -1,16 +1,16 @@
 @extends('layouts.app')
 
-@section('title', 'Avisos de reportes cercanos')
+@section('title', 'Avisos de reportes cercanos — PetRescue')
 
 @section('content')
-    <h1 class="text-2xl font-bold mb-1">🔔 Avísame de reportes cercanos</h1>
-    <p class="text-sm text-gray-600 mb-6">
-        Sin necesidad de crear una cuenta. Déjanos tu correo y la zona que quieres vigilar,
-        y te avisaremos automáticamente cuando alguien reporte una mascota perdida o encontrada cerca.
+<div class="max-w-3xl mx-auto">
+    <h1 class="text-3xl font-black tracking-tight">🔔 Avísame de reportes cercanos</h1>
+    <p class="text-ink-500 mt-2 mb-6">
+        Sin crear cuenta. Marca la zona que quieres vigilar y te escribiremos cuando alguien reporte una mascota perdida o encontrada cerca.
     </p>
 
     @if ($errors->any())
-        <div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">
+        <div class="mb-5 bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl text-sm">
             <ul class="list-disc list-inside">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -19,62 +19,31 @@
         </div>
     @endif
 
-    <form action="{{ route('subscribers.store') }}" method="POST" class="space-y-4 bg-white border rounded-lg p-5">
+    <form action="{{ route('subscribers.store') }}" method="POST" class="bg-white rounded-3xl shadow-soft border border-ink-100 p-5 sm:p-8 space-y-5">
         @csrf
-
-        <div>
-            <label class="block text-sm font-medium mb-1">Nombre</label>
-            <input type="text" name="name" value="{{ old('name') }}" class="w-full border rounded px-3 py-2">
-        </div>
-
-        <div>
-            <label class="block text-sm font-medium mb-1">Correo *</label>
-            <input type="email" name="email" value="{{ old('email') }}" required
-                   class="w-full border rounded px-3 py-2">
-        </div>
-
-        <div>
-            <label class="block text-sm font-medium mb-1">Radio a vigilar (km)</label>
-            <input type="number" step="0.5" min="0.5" max="100" name="radius_km" value="{{ old('radius_km', 5) }}"
-                   class="w-full border rounded px-3 py-2">
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid sm:grid-cols-2 gap-4">
             <div>
-                <label class="block text-sm font-medium mb-1">Latitud *</label>
-                <input type="text" name="latitude" id="latitude" value="{{ old('latitude') }}" required
-                       class="w-full border rounded px-3 py-2" readonly>
+                <label for="name" class="block text-sm font-bold mb-1">Nombre <span class="font-normal text-ink-500">(opcional)</span></label>
+                <input id="name" type="text" name="name" value="{{ old('name') }}" class="w-full rounded-xl border border-ink-200 px-4 py-3">
             </div>
             <div>
-                <label class="block text-sm font-medium mb-1">Longitud *</label>
-                <input type="text" name="longitude" id="longitude" value="{{ old('longitude') }}" required
-                       class="w-full border rounded px-3 py-2" readonly>
+                <label for="email" class="block text-sm font-bold mb-1">Correo <span class="text-rose-500">*</span></label>
+                <input id="email" type="email" name="email" value="{{ old('email') }}" required class="w-full rounded-xl border border-ink-200 px-4 py-3">
             </div>
         </div>
 
-        <button type="button" id="btn-location" class="bg-gray-200 hover:bg-gray-300 text-sm px-3 py-2 rounded">
-            📍 Usar mi ubicación actual
-        </button>
+        <div>
+            <p class="block text-sm font-bold mb-1">Zona a vigilar <span class="text-rose-500">*</span></p>
+            <x-map-picker :lat="old('latitude')" :lng="old('longitude')" color="#f97316" emoji="🏠" height="h-72" />
+        </div>
 
         <div>
-            <button type="submit" class="bg-gray-800 hover:bg-gray-900 text-white px-5 py-2 rounded">
-                Activar avisos
-            </button>
+            <label for="radius_km" class="block text-sm font-bold mb-1">Radio: <span id="radius-label">{{ old('radius_km', 5) }}</span> km</label>
+            <input id="radius_km" type="range" min="1" max="20" step="1" name="radius_km" value="{{ old('radius_km', 5) }}" class="w-full accent-brand-500"
+                   oninput="document.getElementById('radius-label').textContent = this.value">
         </div>
+
+        <button type="submit" class="w-full sm:w-auto rounded-xl bg-ink-900 hover:bg-ink-700 text-white font-extrabold px-6 py-3">Activar avisos</button>
     </form>
-
-    <script>
-        document.getElementById('btn-location').addEventListener('click', function () {
-            if (!navigator.geolocation) {
-                alert('Tu navegador no soporta geolocalización. Puedes escribir las coordenadas manualmente.');
-                return;
-            }
-            navigator.geolocation.getCurrentPosition(function (pos) {
-                document.getElementById('latitude').value = pos.coords.latitude;
-                document.getElementById('longitude').value = pos.coords.longitude;
-            }, function () {
-                alert('No se pudo obtener tu ubicación.');
-            });
-        });
-    </script>
+</div>
 @endsection
