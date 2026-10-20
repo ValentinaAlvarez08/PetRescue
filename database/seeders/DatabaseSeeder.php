@@ -21,5 +21,15 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        // Datos de prueba para el listado de reportes: mascotas perdidas y
+        // encontradas en Pasto, cada una con su foto (public/images/seed/).
+        $this->call(PetReportSeeder::class);
+
+        // Sprint 2 — HU-16: directorio de servicios (datos de ejemplo).
+        $this->call(BusinessSeeder::class);
+
+        // Sprint 3 — HU-17 / HU-18: publicaciones y comentarios (datos de ejemplo).
+        $this->call(CommunitySeeder::class);
     }
 }

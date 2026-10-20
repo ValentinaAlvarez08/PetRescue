@@ -2,9 +2,12 @@
 
 namespace App\Models;
 
+use App\Support\GeoDistance;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class PetReport extends Model
@@ -14,10 +17,18 @@ class PetReport extends Model
     protected $fillable = [
         'management_token',
         'type',
+        'species',
+        'breed',
+        'color',
+        'size',
+        'sex',
+        'event_date',
         'pet_name',
         'description',
         'photo_path',
         'contact_phone',
+        'contact_email',
+        'contact_whatsapp',
         'latitude',
         'longitude',
         'location_reference',
@@ -27,6 +38,8 @@ class PetReport extends Model
     protected $casts = [
         'latitude' => 'decimal:7',
         'longitude' => 'decimal:7',
+        'event_date' => 'date',
+        'contact_whatsapp' => 'boolean',
     ];
 
     protected static function booted(): void
@@ -42,6 +55,70 @@ class PetReport extends Model
         });
     }
 
+    public function getRouteKeyName(): string
+    {
+        // La URL pública usa el id; el token privado solo se usa para gestionar.
+        return 'id';
+    }
+
+    /** Etiqueta legible de la especie (ej. "perro" -> "Perro"). */
+    public function getSpeciesLabelAttribute(): string
+    {
+        return config("pets.species.{$this->species}.label", ucfirst((string) $this->species));
+    }
+
+    public function getSpeciesEmojiAttribute(): string
+    {
+        return config("pets.species.{$this->species}.emoji", '🐾');
+    }
+
+    /**
+     * Los colores se guardan como llaves separadas por coma ("negro,blanco").
+     * Los reportes del Sprint 1 guardaban texto libre: se muestran tal cual.
+     */
+    public function getColorLabelsAttribute(): string
+    {
+        $catalog = config('pets.colors');
+
+        return collect(explode(',', (string) $this->color))
+            ->map(fn ($key) => trim($key))
+            ->filter()
+            ->map(fn ($key) => $catalog[$key]['label'] ?? $key)
+            ->implode(', ');
+    }
+
+    /**
+     * URL pública de la foto. Las fotos subidas viven en el disco "public";
+     * las de los datos de prueba (DatabaseSeeder) vienen incluidas en el
+     * repositorio, en public/images/seed/.
+     */
+    public function getPhotoUrlAttribute(): ?string
+    {
+        if (! $this->photo_path) {
+            return null;
+        }
+
+        return Str::startsWith($this->photo_path, 'images/')
+            ? asset($this->photo_path)
+            : Storage::url($this->photo_path);
+    }
+
+    public function getDisplayNameAttribute(): string
+    {
+        return $this->pet_name ?: ($this->type === 'perdida' ? 'Mascota perdida' : 'Mascota encontrada');
+    }
+
+    /** Número en formato internacional para enlaces de WhatsApp (HU-06). */
+    public function getWhatsappNumberAttribute(): ?string
+    {
+        $digits = preg_replace('/\D/', '', (string) $this->contact_phone);
+        if (! $digits) {
+            return null;
+        }
+
+        return strlen($digits) === 10 ? '57'.$digits : $digits;
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'activo');
@@ -53,20 +130,40 @@ class PetReport extends Model
     }
 
     /**
-     * HU3: reportes activos cerca de una coordenada, usando la fórmula
-     * de Haversine directamente en la consulta (MySQL).
+     * Sprint 3 — HU-04: reportes que tienen $color entre sus colores.
+     * La columna guarda llaves separadas por coma ("negro,blanco"), así que
+     * se compara la llave completa para que "gris" no coincida con otra.
      */
-    public function scopeNear(Builder $query, float $lat, float $lng, float $radiusKm = 5): Builder
+    public function scopeWithColor(Builder $query, string $color): Builder
     {
-        $haversine = "(6371 * acos(cos(radians($lat))
-            * cos(radians(latitude))
-            * cos(radians(longitude) - radians($lng))
-            + sin(radians($lat))
-            * sin(radians(latitude))))";
+        return $query->where(fn (Builder $q) => $q
+            ->where('color', $color)
+            ->orWhere('color', 'like', $color.',%')
+            ->orWhere('color', 'like', '%,'.$color)
+            ->orWhere('color', 'like', '%,'.$color.',%'));
+    }
 
-        return $query
-            ->selectRaw("pet_reports.*, {$haversine} AS distance_km")
-            ->having('distance_km', '<=', $radiusKm)
-            ->orderBy('distance_km');
+    /**
+     * HU3: reportes de $query que caen dentro de $radiusKm de una coordenada,
+     * ordenados por cercanía. El cálculo se hace en PHP (no en SQL) para que
+     * funcione igual en SQLite (desarrollo) y en MySQL (producción).
+     *
+     * @return Collection<int, self>
+     */
+    public static function near(Builder $query, float $lat, float $lng, float $radiusKm = 5): Collection
+    {
+        return $query->get()
+            ->filter(function (self $report) use ($lat, $lng, $radiusKm) {
+                $report->distance_km = GeoDistance::kilometers(
+                    $lat,
+                    $lng,
+                    (float) $report->latitude,
+                    (float) $report->longitude
+                );
+
+                return $report->distance_km <= $radiusKm;
+            })
+            ->sortBy('distance_km')
+            ->values();
     }
 }
