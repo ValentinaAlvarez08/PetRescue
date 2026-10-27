@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class PetReport extends Model
@@ -16,10 +17,18 @@ class PetReport extends Model
     protected $fillable = [
         'management_token',
         'type',
+        'species',
+        'breed',
+        'color',
+        'size',
+        'sex',
+        'event_date',
         'pet_name',
         'description',
         'photo_path',
         'contact_phone',
+        'contact_email',
+        'contact_whatsapp',
         'latitude',
         'longitude',
         'location_reference',
@@ -29,6 +38,9 @@ class PetReport extends Model
     protected $casts = [
         'latitude' => 'decimal:7',
         'longitude' => 'decimal:7',
+        'event_date' => 'date',
+        'contact_whatsapp' => 'boolean',
+        'reunited_at' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -42,6 +54,115 @@ class PetReport extends Model
                 $report->status = 'activo';
             }
         });
+
+        // HU-12: fecha del reencuentro para las historias de éxito.
+        static::saving(function (PetReport $report) {
+            if ($report->status !== 'reunido') {
+                $report->reunited_at = null;
+            } elseif (! $report->reunited_at) {
+                $report->reunited_at = now();
+            }
+        });
+    }
+
+    public function getRouteKeyName(): string
+    {
+        // La URL pública usa el id; el token privado solo se usa para gestionar.
+        return 'id';
+    }
+
+    /** Etiqueta legible de la especie (ej. "perro" -> "Perro"). */
+    public function getSpeciesLabelAttribute(): string
+    {
+        return config("pets.species.{$this->species}.label", ucfirst((string) $this->species));
+    }
+
+    public function getSpeciesEmojiAttribute(): string
+    {
+        return config("pets.species.{$this->species}.emoji", '🐾');
+    }
+
+    /**
+     * Los colores se guardan como llaves separadas por coma ("negro,blanco").
+     * Los reportes del Sprint 1 guardaban texto libre: se muestran tal cual.
+     */
+    public function getColorLabelsAttribute(): string
+    {
+        $catalog = config('pets.colors');
+
+        return collect(explode(',', (string) $this->color))
+            ->map(fn ($key) => trim($key))
+            ->filter()
+            ->map(fn ($key) => $catalog[$key]['label'] ?? $key)
+            ->implode(', ');
+    }
+
+    /**
+     * URL pública de la foto. Las fotos subidas viven en el disco "public";
+     * las de los datos de prueba (DatabaseSeeder) vienen incluidas en el
+     * repositorio, en public/images/seed/.
+     */
+    public function getPhotoUrlAttribute(): ?string
+    {
+        if (! $this->photo_path) {
+            return null;
+        }
+
+        return Str::startsWith($this->photo_path, 'images/')
+            ? asset($this->photo_path)
+            : Storage::url($this->photo_path);
+    }
+
+    public function getDisplayNameAttribute(): string
+    {
+        return $this->pet_name ?: ($this->type === 'perdida' ? 'Mascota perdida' : 'Mascota encontrada');
+    }
+
+    /** Número en formato internacional para enlaces de WhatsApp (HU-06). */
+    public function getWhatsappNumberAttribute(): ?string
+    {
+        $digits = preg_replace('/\D/', '', (string) $this->contact_phone);
+        if (! $digits) {
+            return null;
+        }
+
+        return strlen($digits) === 10 ? '57'.$digits : $digits;
+    }
+
+    /**
+     * HU-09 (CID 4): enlace que se comparte. Siempre es el público por id,
+     * nunca el enlace privado de gestión con el token.
+     */
+    public function getPublicUrlAttribute(): string
+    {
+        return route('reports.show', $this);
+    }
+
+    /** HU-09 (CID 2): texto prellenado para las redes sociales. */
+    public function getShareTextAttribute(): string
+    {
+        $place = $this->location_reference ? " cerca de {$this->location_reference}" : '';
+
+        return $this->type === 'perdida'
+            ? "🐾 ¡Ayúdanos a encontrar a {$this->display_name} ({$this->species_label})! Se perdió{$place}. Si la ves, mira el reporte en PetRescue:"
+            : "🐾 Encontramos esta mascota ({$this->species_label}){$place}. ¿Sabes quién es su familia? Mira el reporte en PetRescue:";
+    }
+
+    /**
+     * HU-09 (CID 1 y 2): enlaces para compartir en cada red social.
+     *
+     * @return array<string, string>
+     */
+    public function shareLinks(): array
+    {
+        $url = rawurlencode($this->public_url);
+        $text = rawurlencode($this->share_text);
+
+        return [
+            'whatsapp' => "https://wa.me/?text={$text}%20{$url}",
+            'facebook' => "https://www.facebook.com/sharer/sharer.php?u={$url}",
+            'x' => "https://x.com/intent/post?text={$text}&url={$url}",
+        ];
     }
 
     public function scopeActive(Builder $query): Builder
@@ -52,6 +173,20 @@ class PetReport extends Model
     public function scopeOfType(Builder $query, string $type): Builder
     {
         return $query->where('type', $type);
+    }
+
+    /**
+     * Sprint 3 — HU-04: reportes que tienen $color entre sus colores.
+     * La columna guarda llaves separadas por coma ("negro,blanco"), así que
+     * se compara la llave completa para que "gris" no coincida con otra.
+     */
+    public function scopeWithColor(Builder $query, string $color): Builder
+    {
+        return $query->where(fn (Builder $q) => $q
+            ->where('color', $color)
+            ->orWhere('color', 'like', $color.',%')
+            ->orWhere('color', 'like', '%,'.$color)
+            ->orWhere('color', 'like', '%,'.$color.',%'));
     }
 
     /**

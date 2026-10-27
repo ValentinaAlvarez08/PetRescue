@@ -2,13 +2,16 @@
 
 namespace App\Models;
 
-use App\Support\GeoDistance;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
+/**
+ * HU3 / HU-11: persona (sin cuenta) que recibe avisos por correo. Se
+ * identifica por su correo y puede vigilar varias zonas (AlertZone).
+ */
 class Subscriber extends Model
 {
     use HasFactory, Notifiable;
@@ -16,48 +19,27 @@ class Subscriber extends Model
     protected $fillable = [
         'name',
         'email',
-        'latitude',
-        'longitude',
-        'radius_km',
-    ];
-
-    protected $casts = [
-        'latitude' => 'decimal:7',
-        'longitude' => 'decimal:7',
-        'radius_km' => 'decimal:2',
-        'notifications_enabled' => 'boolean',
     ];
 
     protected static function booted(): void
     {
+        // HU-11: enlace privado para administrar todas las zonas, sin login
+        // (mismo patrón del management_token de pet_reports).
         static::creating(function (Subscriber $subscriber) {
-            if (empty($subscriber->unsubscribe_token)) {
-                $subscriber->unsubscribe_token = (string) Str::uuid();
+            if (empty($subscriber->manage_token)) {
+                $subscriber->manage_token = (string) Str::uuid();
             }
         });
     }
 
-    /**
-     * HU3 (CID 1): suscriptores con notificaciones activas cuyo radio
-     * configurado cubre la coordenada donde se publicó un reporte.
-     *
-     * @return Collection<int, self>
-     */
-    public static function near(float $lat, float $lng): Collection
+    /** Un correo = un suscriptor, sin importar mayúsculas o espacios. */
+    public function setEmailAttribute(string $value): void
     {
-        return static::query()
-            ->where('notifications_enabled', true)
-            ->get()
-            ->filter(function (self $subscriber) use ($lat, $lng) {
-                $subscriber->distance_km = GeoDistance::kilometers(
-                    $lat,
-                    $lng,
-                    (float) $subscriber->latitude,
-                    (float) $subscriber->longitude
-                );
+        $this->attributes['email'] = Str::lower(trim($value));
+    }
 
-                return $subscriber->distance_km <= (float) $subscriber->radius_km;
-            })
-            ->values();
+    public function zones(): HasMany
+    {
+        return $this->hasMany(AlertZone::class)->orderBy('id');
     }
 }
