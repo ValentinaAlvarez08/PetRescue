@@ -16,6 +16,7 @@ class Business extends Model
     protected $fillable = [
         'name', 'category', 'description', 'services', 'phone', 'has_whatsapp',
         'email', 'address', 'schedule', 'latitude', 'longitude', 'is_active',
+        'review_status', 'requester_name', 'requester_email', 'review_note', 'reviewed_at',
     ];
 
     protected $casts = [
@@ -23,11 +24,29 @@ class Business extends Model
         'longitude' => 'float',
         'has_whatsapp' => 'boolean',
         'is_active' => 'boolean',
+        'reviewed_at' => 'datetime',
     ];
 
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
+    }
+
+    /** HU-19: solicitudes que esperan revisión. */
+    public function scopePending(Builder $query): Builder
+    {
+        return $query->where('review_status', 'pendiente');
+    }
+
+    /** HU-19: aprueba (entra al directorio) o rechaza la solicitud. */
+    public function review(bool $approved, ?string $note = null): void
+    {
+        $this->update([
+            'review_status' => $approved ? 'aprobado' : 'rechazado',
+            'is_active' => $approved,
+            'review_note' => $note,
+            'reviewed_at' => now(),
+        ]);
     }
 
     public function scopeInCategory(Builder $query, ?string $category): Builder

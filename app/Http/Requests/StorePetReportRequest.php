@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\PetProfile;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -13,6 +14,8 @@ use Illuminate\Validation\Rule;
  */
 class StorePetReportRequest extends FormRequest
 {
+    private PetProfile|false|null $profile = null;
+
     public function authorize(): bool
     {
         // Sin login: cualquier visitante puede reportar.
@@ -59,7 +62,9 @@ class StorePetReportRequest extends FormRequest
                 'after_or_equal:'.now()->subDays(config('pets.max_days_ago'))->toDateString(),
             ],
             'description' => ['required', 'string', 'min:15', 'max:500'],
-            'photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            // HU-10: al reportar desde el perfil digital se puede usar su foto.
+            'photo' => [Rule::requiredIf(fn () => ! $this->profile()), 'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'pet_profile_token' => ['nullable', 'uuid'],
             'contact_phone' => ['required', 'regex:/^3\d{9}$/'],
             'contact_whatsapp' => ['boolean'],
             'contact_email' => ['nullable', 'email', 'max:150'],
@@ -104,13 +109,29 @@ class StorePetReportRequest extends FormRequest
     /** Datos listos para guardar en pet_reports. */
     public function reportData(): array
     {
-        $data = $this->safe()->except(['colors', 'photo']);
+        $data = $this->safe()->except(['colors', 'photo', 'pet_profile_token']);
         $data['color'] = implode(',', $this->validated('colors'));
+
+        if ($this->profile()) {
+            $data['pet_profile_id'] = $this->profile()->id;
+        }
 
         if (($data['breed'] ?? null) === config('pets.unknown_breed')) {
             $data['breed'] = null;
         }
 
         return $data;
+    }
+
+    /** HU-10: perfil digital desde el que se reporta la pérdida (si lo hay). */
+    public function profile(): ?PetProfile
+    {
+        if ($this->profile === null) {
+            $token = $this->input('pet_profile_token');
+            $usable = $this->input('type') === 'perdida' && is_string($token) && $token !== '';
+            $this->profile = ($usable ? PetProfile::where('management_token', $token)->first() : null) ?? false;
+        }
+
+        return $this->profile ?: null;
     }
 }

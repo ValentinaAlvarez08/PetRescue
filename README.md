@@ -52,6 +52,40 @@ Tablas nuevas: `posts` y `comments` (migraciones `2026_10_13_*`).
 
 Pruebas: `php artisan test` (incluye `tests/Feature/Sprint3Test.php`).
 
+## Sprint 4 — Coincidencias, edición, denuncias, perfil digital, negocios y guías (HU-05, HU-08, HU-07, HU-20, HU-10, HU-19, HU-21)
+
+- **HU-05**: cada reporte activo muestra los reportes del tipo contrario que podrían ser la misma mascota (misma especie,
+  a menos de 10 km y con fechas compatibles), con un puntaje de parecido y las razones ("Mismo color", "A 1,2 km"...).
+  El puntaje suma distancia, colores, raza, sexo, tamaño y fechas (`App\Support\ReportMatcher`, ajustes en
+  `config('pets.matching')`). En el último paso del formulario se consultan antes de publicar (`/api/reportes/similares`).
+- **HU-08**: al publicar o editar un reporte, quien publicó un reporte parecido recibe un correo con la foto, el
+  puntaje y el enlace público. Solo si dejó correo, una sola vez por par (tabla `report_matches`) y no si ambos
+  reportes tienen el mismo celular.
+- **HU-07**: desde el enlace privado se editan los datos, la foto (opcional), el lugar y el contacto
+  (`/reporte/{token}/editar`); el tipo y la especie no cambian. También se puede cerrar y **reabrir** el reporte;
+  uno cerrado no se edita hasta reabrirlo.
+- **HU-20**: reportes, publicaciones y comentarios tienen "🚩 Denunciar" con un motivo (`config('community.flags')`).
+  Cada persona cuenta una vez (se guarda un hash de la IP, no la IP). Con 3 denuncias el contenido se oculta y se
+  avisa a moderación con un enlace firmado para volver a mostrarlo.
+- **HU-10**: perfil digital de la mascota en `/mi-mascota/nueva` (foto, señas, salud y contacto). El enlace público
+  `/mascota/{código}` usa un código corto (no el id) y la placa con **QR** se imprime desde el enlace privado.
+  "Reportar que se perdió" crea el reporte con los datos y la foto del perfil, y el perfil público muestra
+  "¡Está perdida!".
+- **HU-19**: "Registrar mi negocio" en `/directorio/registrar`. La solicitud queda **pendiente** (no aparece en el
+  directorio) hasta que moderación la apruebe o rechace con el enlace firmado del correo; quien la pidió recibe
+  un correo en cada paso. No se acepta un nombre que ya esté en el directorio o en revisión.
+- **HU-21**: guías rápidas en `/guias` (perdidas, emergencias, salud, alimentación y convivencia), con filtro por
+  tema, búsqueda y pasos numerados. El contenido está en `config/guides.php` y las de salud recomiendan siempre
+  consultar al veterinario.
+
+**Moderación sin login**: configura `MODERATION_EMAIL` en `.env` para recibir las solicitudes de negocios y los
+avisos de contenido oculto. Los enlaces de esos correos están firmados y vencen a los 30 días. Sin correo, o para
+obtener enlaces nuevos, usa `php artisan moderacion:pendientes`.
+
+Tablas nuevas: `pet_profiles`, `report_matches` y `content_flags` (migraciones `2026_10_27_*`).
+
+Pruebas: `php artisan test` (incluye `tests/Feature/Sprint4Part2Test.php`).
+
 ## Requisitos
 
 - PHP 8.2+, Composer

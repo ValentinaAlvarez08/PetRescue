@@ -15,7 +15,10 @@
     foreach ($stepFields as $n => $fields) {
         if (collect($fields)->contains(fn ($f) => $errors->has($f))) { $startStep = $n; break; }
     }
-    $oldColors = old('colors', []);
+    // Sprint 4 — HU-10: al reportar desde el perfil digital, sus datos son el valor inicial.
+    $prefill = $prefill ?? [];
+    $val = fn (string $key, $default = null) => old($key, $prefill[$key] ?? $default);
+    $oldColors = old('colors', $prefill['colors'] ?? []);
     $minDate = now()->subDays(config('pets.max_days_ago'))->toDateString();
 @endphp
 
@@ -34,7 +37,21 @@
         <p class="text-ink-500 mt-2">
             Son 3 pasos cortos, sin crear cuenta. Al final recibirás un enlace privado para actualizar o cerrar el reporte.
         </p>
+        {{-- Sprint 4 — HU-21 --}}
+        <a href="{{ route('guides.show', $lost ? 'perdi-mi-mascota' : 'encontre-una-mascota') }}" class="inline-block mt-2 text-sm font-bold text-brand-700 hover:underline">
+            📘 Guía rápida: {{ $lost ? 'qué hacer en las primeras 24 horas' : 'cómo ayudarla a volver a casa' }} →
+        </a>
     </div>
+
+    @if ($profile ?? null)
+        <div class="mb-5 flex items-center gap-4 rounded-2xl border border-brand-200 bg-brand-50 p-4" data-role="profile-prefill">
+            <img src="{{ $profile->photo_url }}" alt="" class="w-14 h-14 rounded-xl object-cover shrink-0">
+            <p class="text-sm text-brand-900">
+                <span class="font-extrabold">Usamos los datos del perfil de {{ $profile->name }}.</span>
+                Revísalos, marca dónde se perdió y cuéntanos qué llevaba puesto.
+            </p>
+        </div>
+    @endif
 
     {{-- Barra de progreso --}}
     <ol id="stepper" class="grid grid-cols-3 gap-2 mb-6 text-xs sm:text-sm font-bold">
@@ -61,6 +78,9 @@
           class="bg-white rounded-3xl shadow-soft border border-ink-100">
         @csrf
         <input type="hidden" name="type" value="{{ $type }}">
+        @if ($profile ?? null)
+            <input type="hidden" name="pet_profile_token" value="{{ $profile->management_token }}">
+        @endif
 
         {{-- ============ PASO 1: la mascota ============ --}}
         <section data-step="1" class="p-5 sm:p-8 space-y-6">
@@ -70,7 +90,7 @@
                 <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-3">
                     @foreach ($species as $key => $sp)
                         <label class="cursor-pointer">
-                            <input type="radio" name="species" value="{{ $key }}" class="peer sr-only" @checked(old('species') === $key) required>
+                            <input type="radio" name="species" value="{{ $key }}" class="peer sr-only" @checked($val('species') === $key) required>
                             <span class="flex flex-col items-center justify-center gap-1 h-24 rounded-2xl border-2 border-ink-100 bg-ink-50
                                          peer-checked:border-{{ $accent }}-500 peer-checked:bg-{{ $accent }}-50 hover:border-ink-200 transition text-center px-1">
                                 <span class="text-3xl">{{ $sp['emoji'] }}</span>
@@ -82,13 +102,13 @@
                 <p class="field-error hidden text-sm text-rose-600 mt-2" data-for="species">Elige qué animal es.</p>
             </div>
 
-            <div id="pet-details" class="space-y-6 {{ old('species') ? '' : 'hidden' }}">
+            <div id="pet-details" class="space-y-6 {{ $val('species') ? '' : 'hidden' }}">
                 <div class="grid sm:grid-cols-2 gap-4">
                     <div>
                         <label for="breed" class="block text-sm font-bold mb-1">
                             Raza {!! $lost ? '<span class="text-rose-500">*</span>' : '<span class="font-normal text-ink-500">(opcional)</span>' !!}
                         </label>
-                        <select id="breed" name="breed" data-old="{{ old('breed') }}" @if($lost) required @endif
+                        <select id="breed" name="breed" data-old="{{ $val('breed') }}" @if($lost) required @endif
                                 class="w-full rounded-xl border border-ink-200 bg-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-400">
                         </select>
                         <p class="field-error hidden text-sm text-rose-600 mt-1" data-for="breed">Elige la raza.</p>
@@ -98,7 +118,7 @@
                             {{ $lost ? '¿Cómo se llama?' : 'Nombre en la placa' }}
                             <span class="font-normal text-ink-500">(opcional)</span>
                         </label>
-                        <input id="pet_name" type="text" name="pet_name" value="{{ old('pet_name') }}" maxlength="40"
+                        <input id="pet_name" type="text" name="pet_name" value="{{ $val('pet_name') }}" maxlength="40"
                                placeholder="{{ $lost ? 'Ej: Luna' : 'Si tiene placa o collar con nombre' }}"
                                class="w-full rounded-xl border border-ink-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-400">
                     </div>
@@ -109,7 +129,7 @@
                     <div class="inline-flex rounded-xl bg-ink-100 p-1 gap-1">
                         @foreach ($sexes as $key => $label)
                             <label class="cursor-pointer">
-                                <input type="radio" name="sex" value="{{ $key }}" class="peer sr-only" @checked(old('sex', $lost ? null : 'no_se') === $key)>
+                                <input type="radio" name="sex" value="{{ $key }}" class="peer sr-only" @checked($val('sex', $lost ? null : 'no_se') === $key)>
                                 <span class="block px-4 py-2 rounded-lg text-sm font-bold text-ink-500 peer-checked:bg-white peer-checked:text-ink-900 peer-checked:shadow">{{ $label }}</span>
                             </label>
                         @endforeach
@@ -122,7 +142,7 @@
                     <div class="grid sm:grid-cols-3 gap-2">
                         @foreach ($sizes as $key => $label)
                             <label class="cursor-pointer">
-                                <input type="radio" name="size" value="{{ $key }}" class="peer sr-only" @checked(old('size') === $key)>
+                                <input type="radio" name="size" value="{{ $key }}" class="peer sr-only" @checked($val('size') === $key)>
                                 <span class="block rounded-xl border-2 border-ink-100 px-4 py-3 text-sm font-bold peer-checked:border-{{ $accent }}-500 peer-checked:bg-{{ $accent }}-50">{{ $label }}</span>
                             </label>
                         @endforeach
@@ -188,19 +208,26 @@
                     <p class="block text-sm font-bold mb-1">Foto <span class="text-rose-500">*</span></p>
                     <label for="photo" id="photo-drop"
                            class="relative flex flex-col items-center justify-center gap-1 aspect-square rounded-2xl border-2 border-dashed border-ink-200 bg-ink-50 hover:bg-ink-100 cursor-pointer overflow-hidden text-center px-3">
-                        <img id="photo-preview" class="hidden absolute inset-0 w-full h-full object-cover" alt="">
+                        @if ($profile ?? null)
+                            <img id="photo-preview" src="{{ $profile->photo_url }}" class="absolute inset-0 w-full h-full object-cover" alt="">
+                        @else
+                            <img id="photo-preview" class="hidden absolute inset-0 w-full h-full object-cover" alt="">
+                        @endif
                         <span class="text-3xl">📷</span>
                         <span class="text-sm font-bold">Subir foto</span>
                         <span class="text-xs text-ink-500">JPG, PNG o WEBP · máx. 5 MB</span>
                     </label>
-                    <input id="photo" type="file" name="photo" accept="image/jpeg,image/png,image/webp" class="sr-only" required>
+                    <input id="photo" type="file" name="photo" accept="image/jpeg,image/png,image/webp" class="sr-only" @unless ($profile ?? null) required @endunless>
+                    @if ($profile ?? null)
+                        <p class="text-xs text-ink-500 mt-1">Usaremos la foto del perfil. Si tienes una más reciente, súbela.</p>
+                    @endif
                     <p class="field-error hidden text-sm text-rose-600 mt-1" data-for="photo">Sube una foto (máx. 5 MB).</p>
                 </div>
                 <div>
                     <label for="description" class="block text-sm font-bold mb-1">Señas particulares <span class="text-rose-500">*</span></label>
                     <textarea id="description" name="description" rows="6" maxlength="500" required
                               placeholder="{{ $lost ? 'Ej: collar rojo con placa, mancha blanca en el pecho, cojea un poco de la pata trasera. Es miedosa, no la persigan.' : 'Ej: tiene collar azul sin placa, está bien de salud, es muy dócil. La tengo en mi casa.' }}"
-                              class="w-full rounded-xl border border-ink-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-400">{{ old('description') }}</textarea>
+                              class="w-full rounded-xl border border-ink-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-400">{{ $val('description') }}</textarea>
                     <div class="flex justify-between text-xs text-ink-500 mt-1">
                         <span class="field-error hidden text-rose-600" data-for="description">Escribe al menos 15 caracteres.</span>
                         <span class="ml-auto"><span id="desc-count">0</span>/500</span>
@@ -211,24 +238,31 @@
             <div class="grid sm:grid-cols-2 gap-4">
                 <div>
                     <label for="contact_phone" class="block text-sm font-bold mb-1">Celular de contacto <span class="text-rose-500">*</span></label>
-                    <input id="contact_phone" type="tel" name="contact_phone" value="{{ old('contact_phone') }}" inputmode="numeric"
+                    <input id="contact_phone" type="tel" name="contact_phone" value="{{ $val('contact_phone') }}" inputmode="numeric"
                            placeholder="300 123 4567" maxlength="14" required
                            class="w-full rounded-xl border border-ink-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-400">
                     <label class="inline-flex items-center gap-2 mt-2 text-sm">
-                        <input type="checkbox" name="contact_whatsapp" value="1" class="w-4 h-4 accent-emerald-600" @checked(old('contact_whatsapp', true))>
+                        <input type="checkbox" name="contact_whatsapp" value="1" class="w-4 h-4 accent-emerald-600" @checked($val('contact_whatsapp', true))>
                         Este número tiene WhatsApp
                     </label>
                     <p class="field-error hidden text-sm text-rose-600 mt-1" data-for="contact_phone">Celular de 10 dígitos que empiece por 3.</p>
                 </div>
                 <div>
                     <label for="contact_email" class="block text-sm font-bold mb-1">Correo <span class="font-normal text-ink-500">(opcional)</span></label>
-                    <input id="contact_email" type="email" name="contact_email" value="{{ old('contact_email') }}" maxlength="150"
+                    <input id="contact_email" type="email" name="contact_email" value="{{ $val('contact_email') }}" maxlength="150"
                            placeholder="tucorreo@ejemplo.com"
                            class="w-full rounded-xl border border-ink-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-400">
                 </div>
             </div>
 
             <div id="summary" class="rounded-2xl bg-ink-50 border border-ink-100 p-4 text-sm"></div>
+
+            {{-- Sprint 4 — HU-05: antes de publicar, reportes del tipo contrario que se parecen --}}
+            <div id="similar-box" class="hidden rounded-2xl border-2 {{ $lost ? 'border-emerald-200 bg-emerald-50' : 'border-rose-200 bg-rose-50' }} p-4">
+                <p class="font-extrabold">{{ $lost ? '👀 ¿Es alguna de estas? Alguien reportó mascotas encontradas que se parecen' : '👀 ¿Es alguna de estas? Hay familias buscando mascotas que se parecen' }}</p>
+                <p class="text-sm text-ink-700 mt-0.5">Ábrelas para comparar. Igual puedes publicar tu reporte.</p>
+                <div id="similar-list" class="grid sm:grid-cols-2 gap-2 mt-3"></div>
+            </div>
         </section>
 
         {{-- Navegación entre pasos --}}
@@ -254,6 +288,8 @@
     const LOST = @json($lost);
     const COLORS = @json(collect($colors)->map(fn ($c) => $c['label']));
     const SEXES = @json($sexes);
+    const HAS_PROFILE_PHOTO = @json((bool) ($profile ?? null));
+    const SIMILAR_URL = @json(route('reports.similar'));
     const form = document.getElementById('report-form');
     let step = {{ $startStep }};
 
@@ -334,7 +370,7 @@
         },
         3: () => {
             const f = photo.files[0];
-            let ok = showError('photo', !f || f.size > 5 * 1024 * 1024);
+            let ok = showError('photo', f ? f.size > 5 * 1024 * 1024 : !HAS_PROFILE_PHOTO);
             ok = showError('description', desc.value.trim().length < 15) && ok;
             ok = showError('contact_phone', !/^3\d{9}$/.test(phone.value.replace(/\D/g, ''))) && ok;
             return ok;
@@ -353,6 +389,32 @@
             '<p class="text-ink-500">📅 ' + document.getElementById('event_date').value + (ref ? ' · 📍 ' + ref.replace(/</g, '&lt;') : ' · 📍 punto marcado en el mapa') + '</p>';
     }
 
+    // ---------- HU-05: reportes similares (antes de publicar) ----------
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+    function loadSimilar() {
+        const params = new URLSearchParams();
+        ['type', 'species', 'latitude', 'longitude', 'breed', 'sex', 'size', 'event_date'].forEach(name => {
+            const el = form.querySelector('[name="' + name + '"]:checked') || form.querySelector('[name="' + name + '"]:not([type="radio"])');
+            if (el && el.value) params.append(name, el.value);
+        });
+        form.querySelectorAll('input[name="colors[]"]:checked').forEach(c => params.append('colors[]', c.value));
+        const box = document.getElementById('similar-box'), list = document.getElementById('similar-list');
+        fetch(SIMILAR_URL + '?' + params.toString(), { headers: { 'Accept': 'application/json' } })
+            .then(r => r.ok ? r.json() : { reports: [] })
+            .then(data => {
+                box.classList.toggle('hidden', !data.reports.length);
+                list.innerHTML = data.reports.map(r =>
+                    '<a href="' + esc(r.url) + '" target="_blank" rel="noopener" class="flex gap-3 rounded-xl bg-white border border-ink-100 p-2 hover:shadow-soft">' +
+                        (r.photo_url ? '<img src="' + esc(r.photo_url) + '" alt="" class="w-16 h-16 rounded-lg object-cover shrink-0">'
+                                     : '<span class="w-16 h-16 rounded-lg bg-ink-100 grid place-items-center text-2xl shrink-0">' + esc(r.emoji) + '</span>') +
+                        '<span class="min-w-0 text-sm"><span class="block font-extrabold truncate">' + esc(r.name) + ' · ' + r.score + '%</span>' +
+                        '<span class="block text-xs text-ink-500">A ' + r.distance_km + ' km · ' + esc(r.published) + '</span>' +
+                        '<span class="block text-xs text-ink-700 truncate">' + r.reasons.slice(1).map(esc).join(' · ') + '</span></span>' +
+                    '</a>').join('');
+            })
+            .catch(() => box.classList.add('hidden'));
+    }
+
     // ---------- Navegación ----------
     function go(n) {
         step = n;
@@ -368,7 +430,7 @@
         document.getElementById('btn-next').classList.toggle('hidden', n === 3);
         document.getElementById('btn-submit').classList.toggle('hidden', n !== 3);
         if (n === 2) form.querySelector('[data-step="2"] [id^="map-picker-"]').dispatchEvent(new Event('map:refresh'));
-        if (n === 3) renderSummary();
+        if (n === 3) { renderSummary(); loadSimilar(); }
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     document.getElementById('btn-next').addEventListener('click', () => { if (validators[step]()) go(step + 1); });

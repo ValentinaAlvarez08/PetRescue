@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Flaggable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,7 +15,7 @@ use Illuminate\Support\Str;
  */
 class Post extends Model
 {
-    use HasFactory;
+    use Flaggable, HasFactory;
 
     protected $fillable = [
         'management_token', 'topic', 'nickname', 'title', 'body', 'photo_path', 'helpful_count',
@@ -22,6 +23,7 @@ class Post extends Model
 
     protected $casts = [
         'helpful_count' => 'integer',
+        'hidden_at' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -40,10 +42,13 @@ class Post extends Model
         return 'id';
     }
 
-    /** HU-18: comentarios, del más antiguo al más reciente (orden de conversación). */
+    /**
+     * HU-18: comentarios, del más antiguo al más reciente (orden de conversación).
+     * HU-20: sin los ocultos por denuncias.
+     */
     public function comments(): HasMany
     {
-        return $this->hasMany(Comment::class)->oldest();
+        return $this->hasMany(Comment::class)->whereNull('comments.hidden_at')->oldest();
     }
 
     public function scopeInTopic(Builder $query, string $topic): Builder
@@ -67,6 +72,17 @@ class Post extends Model
         return Str::startsWith($this->photo_path, 'images/')
             ? asset($this->photo_path)
             : Storage::url($this->photo_path);
+    }
+
+    /** HU-20 */
+    public function flagLabel(): string
+    {
+        return "la publicación «{$this->title}»";
+    }
+
+    public function flagUrl(): string
+    {
+        return route('posts.show', [$this->topic, $this]);
     }
 
     /** Nombre de la cookie que evita sumar "Me sirvió" dos veces (HU-18). */

@@ -50,22 +50,23 @@
                 Pet<span class="text-brand-600 -ml-2">Rescue</span>
             </a>
 
-            <button id="nav-toggle" class="md:hidden w-10 h-10 rounded-lg hover:bg-ink-100 text-2xl" aria-label="Abrir menú">☰</button>
+            <button id="nav-toggle" class="lg:hidden w-10 h-10 rounded-lg hover:bg-ink-100 text-2xl" aria-label="Abrir menú">☰</button>
 
             @php
                 $navLink = fn ($active) => 'px-3 py-2 rounded-lg font-semibold hover:bg-ink-100 '.($active ? 'text-brand-700 bg-brand-50' : 'text-ink-700');
             @endphp
             <nav id="nav-menu"
-                 class="hidden md:flex flex-col md:flex-row md:items-center gap-1 text-sm
-                        absolute md:static top-16 left-0 right-0 bg-white md:bg-transparent border-b md:border-0 border-ink-100
-                        px-4 md:px-0 py-3 md:py-0 shadow-soft md:shadow-none">
+                 class="hidden lg:flex flex-col lg:flex-row lg:items-center gap-1 text-sm
+                        absolute lg:static top-16 left-0 right-0 bg-white lg:bg-transparent border-b lg:border-0 border-ink-100
+                        px-4 lg:px-0 py-3 lg:py-0 shadow-soft lg:shadow-none">
                 <a href="{{ route('home') }}" class="{{ $navLink(request()->routeIs('home')) }}">Inicio</a>
                 <a href="{{ route('reports.index') }}" class="{{ $navLink(request()->routeIs('reports.index', 'reports.show')) }}">Reportes</a>
                 <a href="{{ route('directory.index') }}" class="{{ $navLink(request()->routeIs('directory.*')) }}">Directorio</a>
                 <a href="{{ route('home') }}#comunidad" class="{{ $navLink(request()->routeIs('community.*')) }}">Comunidad</a>
+                <a href="{{ route('guides.index') }}" class="{{ $navLink(request()->routeIs('guides.*')) }}">Guías</a>
                 <a href="{{ route('subscribers.create') }}" class="{{ $navLink(request()->routeIs('subscribers.*')) }}">Alertas</a>
                 <a href="{{ route('stats.index') }}" class="{{ $navLink(request()->routeIs('stats.*')) }}">Estadísticas</a>
-                <span class="hidden md:block w-px h-6 bg-ink-200 mx-2"></span>
+                <span class="hidden lg:block w-px h-6 bg-ink-200 mx-2"></span>
                 <a href="{{ route('reports.create', 'perdida') }}"
                    class="px-4 py-2 rounded-xl font-bold text-white bg-rose-500 hover:bg-rose-600 text-center">Perdí mi mascota</a>
                 <a href="{{ route('reports.create', 'encontrada') }}"
@@ -97,12 +98,15 @@
                     <li><a class="hover:text-brand-700" href="{{ route('reports.create', 'encontrada') }}">Reportar mascota encontrada</a></li>
                     <li><a class="hover:text-brand-700" href="{{ route('subscribers.create') }}">Recibir alertas de mis zonas</a></li>
                     <li><a class="hover:text-brand-700" href="{{ route('stats.index') }}">Estadísticas de reencuentros</a></li>
+                    <li><a class="hover:text-brand-700" href="{{ route('profiles.create') }}">Perfil digital de mi mascota</a></li>
                 </ul>
             </div>
             <div>
                 <p class="font-bold text-ink-700 mb-2">Comunidad</p>
                 <ul class="space-y-1">
                     <li><a class="hover:text-brand-700" href="{{ route('directory.index') }}">Directorio de servicios</a></li>
+                    <li><a class="hover:text-brand-700" href="{{ route('directory.create') }}">Registrar mi negocio</a></li>
+                    <li><a class="hover:text-brand-700" href="{{ route('guides.index') }}">Guías rápidas</a></li>
                     <li><a class="hover:text-brand-700" href="{{ route('community.show', 'rescatadas') }}">Mascotas rescatadas</a></li>
                     <li><a class="hover:text-brand-700" href="{{ route('community.show', 'reactivas') }}">Mascotas reactivas</a></li>
                 </ul>
