@@ -30,7 +30,7 @@ class HomeController extends Controller
             'countsByCategory' => $countsByCategory,
             'topics' => config('community.topics'),
             // Sprint 3 — HU-17: cuántas publicaciones tiene cada tema.
-            'postsByTopic' => Post::selectRaw('topic, count(*) as total')
+            'postsByTopic' => Post::visible()->selectRaw('topic, count(*) as total')
                 ->groupBy('topic')
                 ->pluck('total', 'topic'),
         ]);

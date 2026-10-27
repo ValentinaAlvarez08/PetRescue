@@ -38,7 +38,14 @@
     </div>
 </div>
 
-<p class="text-xs text-ink-500 mt-4">¿Tienes un negocio para mascotas? Muy pronto podrás pedir que lo agreguemos al directorio.</p>
+{{-- Sprint 4 — HU-19 --}}
+<div class="mt-6 rounded-3xl bg-ink-900 text-white p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+        <p class="text-xl font-black">¿Tienes un negocio para mascotas?</p>
+        <p class="text-white/70 text-sm mt-1">Pide que lo agreguemos al directorio. Es gratis y te avisamos por correo cuando esté publicado.</p>
+    </div>
+    <a href="{{ route('directory.create') }}" class="shrink-0 rounded-xl bg-brand-500 hover:bg-brand-600 font-extrabold px-5 py-3 text-center">Registrar mi negocio</a>
+</div>
 @endsection
 
 @push('scripts')

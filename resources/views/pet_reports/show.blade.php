@@ -54,6 +54,15 @@
             <button type="button" data-copy="{{ url()->current() }}" class="rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold px-4 py-2 text-sm">Copiar enlace privado</button>
         </div>
     </div>
+
+    {{-- Sprint 4 — HU-20: el autor ve por qué su reporte no aparece --}}
+    @if ($report->isHidden())
+        <div class="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-5 text-rose-900" data-role="hidden-notice">
+            <p class="font-extrabold">🚩 Tu reporte está oculto mientras lo revisamos</p>
+            <p class="text-sm mt-1">Varias personas lo denunciaron como inapropiado, así que por ahora no aparece en el listado.
+                Si es un error, lo volveremos a mostrar después de revisarlo.</p>
+        </div>
+    @endif
 @endif
 
 <div class="mt-4 grid lg:grid-cols-[1.2fr_1fr] gap-6">
@@ -84,6 +93,19 @@
             </dl>
 
             <p class="mt-4 text-ink-700 leading-relaxed">{{ $report->description }}</p>
+
+            {{-- Sprint 4 — HU-10: reporte creado desde el perfil digital --}}
+            @if ($report->profile)
+                <a href="{{ $report->profile->public_url }}" class="inline-block mt-4 text-sm font-bold text-brand-700 hover:underline">
+                    🪪 Ver el perfil digital de {{ $report->profile->name }} →
+                </a>
+            @endif
+
+            {{-- Sprint 4 — HU-20: denunciar contenido inapropiado --}}
+            @unless ($canManage)
+                <x-flag-form class="mt-6 pt-4 border-t border-ink-100" :action="route('flags.report', $report)" target="reporte-{{ $report->id }}"
+                             label="Denunciar este reporte" />
+            @endunless
         </div>
     </article>
 
@@ -123,22 +145,43 @@
                href="https://www.google.com/maps/search/?api=1&query={{ $report->latitude }},{{ $report->longitude }}">Abrir en Google Maps</a>
         </div>
 
-        {{-- Gestión sin login --}}
-        @if ($canManage && $report->status !== 'cerrado')
-            <div class="bg-white rounded-3xl shadow-soft border border-ink-100 p-6">
+        {{-- Gestión sin login (Sprint 4 — HU-07: editar, cerrar o reabrir) --}}
+        @if ($canManage)
+            <div class="bg-white rounded-3xl shadow-soft border border-ink-100 p-6" data-role="manage-actions">
                 <h2 class="font-extrabold">Actualizar el reporte</h2>
-                <form action="{{ route('reports.updateStatus', $report->management_token) }}" method="POST" class="mt-3 grid gap-2">
+                @if ($report->status !== 'cerrado')
+                    <a href="{{ route('reports.edit', $report->management_token) }}"
+                       class="mt-3 flex items-center justify-center gap-2 rounded-xl bg-ink-900 hover:bg-ink-700 text-white font-bold py-3">✏️ Editar datos, foto o contacto</a>
+                @endif
+                <form action="{{ route('reports.updateStatus', $report->management_token) }}" method="POST" class="mt-2 grid gap-2">
                     @csrf
                     @method('PATCH')
-                    @if ($report->status !== 'reunido')
+                    @if ($report->status === 'activo')
                         <button name="status" value="reunido" class="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3">🎉 ¡Ya está en casa! Marcar como reunido</button>
+                    @else
+                        <button name="status" value="activo" class="rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-bold py-3">↩️ Reabrir reporte</button>
                     @endif
-                    <button name="status" value="cerrado" class="rounded-xl border border-ink-200 hover:bg-ink-50 font-bold py-3">Cerrar reporte</button>
+                    @if ($report->status !== 'cerrado')
+                        <button name="status" value="cerrado" class="rounded-xl border border-ink-200 hover:bg-ink-50 font-bold py-3"
+                                onclick="return confirm('¿Cerrar el reporte? Dejará de aparecer en el listado y nadie podrá contactarte desde él. Podrás reabrirlo cuando quieras.');">Cerrar reporte</button>
+                    @endif
                 </form>
+                <p class="text-xs text-ink-500 mt-3">
+                    @switch($report->status)
+                        @case('reunido') Este reporte está marcado como reunido y ya no aparece en el listado. @break
+                        @case('cerrado') Este reporte está cerrado: no aparece en el listado. Reábrelo si necesitas seguir buscando. @break
+                        @default Cierra el reporte si ya no necesitas ayuda (por ejemplo, si lo publicaste por error).
+                    @endswitch
+                </p>
             </div>
         @endif
     </aside>
 </div>
+
+{{-- Sprint 4 — HU-05: reportes similares --}}
+@if ($report->status === 'activo' && ($canManage || $similar->isNotEmpty()))
+    @include('pet_reports._similar')
+@endif
 @endsection
 
 @push('scripts')

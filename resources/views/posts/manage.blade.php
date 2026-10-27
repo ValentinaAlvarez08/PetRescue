@@ -17,9 +17,16 @@
                    class="flex-1 min-w-0 rounded-xl bg-white/10 border border-white/20 px-4 py-3 text-sm">
             <button type="button" id="copy-link" class="rounded-xl bg-brand-500 hover:bg-brand-600 font-bold px-4 py-3 text-sm">Copiar enlace</button>
         </div>
-        <a href="{{ route('posts.show', [$post->topic, $post]) }}" class="inline-block mt-4 text-sm font-bold text-brand-300 hover:text-brand-200">
-            Ver la publicación como la ve la comunidad →
-        </a>
+        @if ($post->isHidden())
+            {{-- Sprint 4 — HU-20 --}}
+            <p class="mt-4 rounded-xl bg-rose-500/20 border border-rose-300/40 px-4 py-3 text-sm text-rose-100" data-role="hidden-notice">
+                🚩 Tu publicación está oculta mientras la revisamos: varias personas la denunciaron como inapropiada.
+            </p>
+        @else
+            <a href="{{ route('posts.show', [$post->topic, $post]) }}" class="inline-block mt-4 text-sm font-bold text-brand-300 hover:text-brand-200">
+                Ver la publicación como la ve la comunidad →
+            </a>
+        @endif
     </div>
 
     <form action="{{ route('posts.update', $post->management_token) }}" method="POST" enctype="multipart/form-data" novalidate

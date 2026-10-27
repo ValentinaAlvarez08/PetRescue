@@ -23,6 +23,7 @@ class CommunityController extends Controller
 
         // De la más reciente a la más antigua; el id desempata publicaciones del mismo segundo.
         $posts = Post::inTopic($topic)
+            ->visible() // HU-20: sin las ocultas por denuncias
             ->withCount('comments')
             ->orderByDesc('created_at')
             ->orderByDesc('id')

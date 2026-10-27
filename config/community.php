@@ -82,4 +82,28 @@ return [
         ],
     ],
 
+    // Sprint 4 — HU-20: denuncias de contenido inapropiado.
+    'flags' => [
+        // Con estas denuncias (de personas distintas) el contenido se oculta
+        // automáticamente hasta que un moderador lo revise.
+        'hide_threshold' => 3,
+        'reasons' => [
+            'spam' => 'Spam o publicidad',
+            'ofensivo' => 'Lenguaje ofensivo o acoso',
+            'falso' => 'Información falsa o posible estafa',
+            'venta' => 'Venta de animales',
+            'maltrato' => 'Maltrato animal',
+            'datos' => 'Expone datos personales de otra persona',
+            'otro' => 'Otro motivo',
+        ],
+    ],
+
+    // Sprint 4 — HU-19 / HU-20: correo que recibe las solicitudes de negocios
+    // y los avisos de contenido oculto. Sin correo, las solicitudes quedan
+    // pendientes y el contenido oculto se revisa con `php artisan moderacion:pendientes`.
+    'moderation' => [
+        'email' => env('MODERATION_EMAIL'),
+        'link_days' => 30,
+    ],
+
 ];

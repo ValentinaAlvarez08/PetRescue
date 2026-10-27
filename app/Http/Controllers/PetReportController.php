@@ -3,11 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Events\PetReportPublished;
+use App\Events\PetReportUpdated;
 use App\Http\Requests\StorePetReportRequest;
+use App\Http\Requests\UpdatePetReportRequest;
+use App\Models\PetProfile;
 use App\Models\PetReport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class PetReportController extends Controller
@@ -95,10 +101,15 @@ class PetReportController extends Controller
 
     /**
      * HU1 / HU2: formulario de reporte (perdida o encontrada), sin login.
+     * HU-10 (CID 4): con ?perfil={token} se prellena con el perfil digital.
      */
-    public function create(string $type): View
+    public function create(Request $request, string $type): View
     {
         abort_unless(in_array($type, ['perdida', 'encontrada'], true), 404);
+
+        $profile = $type === 'perdida' && is_string($request->query('perfil'))
+            ? PetProfile::where('management_token', $request->query('perfil'))->first()
+            : null;
 
         return view('pet_reports.create', [
             'type' => $type,
@@ -106,6 +117,8 @@ class PetReportController extends Controller
             'colors' => config('pets.colors'),
             'sizes' => config('pets.sizes'),
             'sexes' => config('pets.sexes'),
+            'profile' => $profile,
+            'prefill' => $profile?->toReportPrefill() ?? [],
         ]);
     }
 
@@ -115,6 +128,8 @@ class PetReportController extends Controller
 
         if ($request->hasFile('photo')) {
             $data['photo_path'] = $request->file('photo')->store('pet-reports', 'public');
+        } elseif ($profile = $request->profile()) {
+            $data['photo_path'] = $this->copyProfilePhoto($profile);
         }
 
         $report = PetReport::create($data);
@@ -135,9 +150,14 @@ class PetReportController extends Controller
      */
     public function show(PetReport $report): View
     {
+        // HU-20: oculto por denuncias mientras se revisa.
+        abort_if($report->isHidden(), 404);
+
         return view('pet_reports.show', [
             'report' => $report,
             'canManage' => false,
+            // HU-05: reportes del tipo contrario que se parecen.
+            'similar' => $report->status === 'activo' ? $report->similarReports() : collect(),
         ]);
     }
 
@@ -152,9 +172,57 @@ class PetReportController extends Controller
         return view('pet_reports.show', [
             'report' => $report,
             'canManage' => true,
+            'similar' => $report->status === 'activo' ? $report->similarReports() : collect(),
         ]);
     }
 
+    /**
+     * Sprint 4 — HU-07: editar los datos del reporte con el enlace privado.
+     * El tipo y la especie no cambian; un reporte cerrado hay que reabrirlo.
+     */
+    public function edit(string $token): View|RedirectResponse
+    {
+        $report = PetReport::where('management_token', $token)->firstOrFail();
+
+        if ($report->status === 'cerrado') {
+            return $this->closedRedirect($token);
+        }
+
+        return view('pet_reports.edit', [
+            'report' => $report,
+            'speciesInfo' => config("pets.species.{$report->species}"),
+            'colors' => config('pets.colors'),
+            'sizes' => config('pets.sizes'),
+            'sexes' => config('pets.sexes'),
+        ]);
+    }
+
+    public function update(UpdatePetReportRequest $request, string $token): RedirectResponse
+    {
+        $report = $request->managedReport();
+
+        if ($report->status === 'cerrado') {
+            return $this->closedRedirect($token);
+        }
+
+        $data = $request->reportData();
+
+        if ($request->hasFile('photo')) {
+            $report->deleteUploadedPhoto();
+            $data['photo_path'] = $request->file('photo')->store('pet-reports', 'public');
+        }
+
+        $report->update($data);
+
+        // HU-08: con los datos nuevos puede haber coincidencias nuevas.
+        PetReportUpdated::dispatch($report);
+
+        return redirect()->route('reports.manage', $token)->with('status', 'Guardamos los cambios de tu reporte.');
+    }
+
+    /**
+     * HU-07: marcar reunido, cerrar o reabrir el reporte.
+     */
     public function updateStatus(Request $request, string $token): RedirectResponse
     {
         $report = PetReport::where('management_token', $token)->firstOrFail();
@@ -165,7 +233,80 @@ class PetReportController extends Controller
 
         $report->update(['status' => $request->input('status')]);
 
-        return back()->with('status', 'Estado del reporte actualizado.');
+        $message = match ($report->status) {
+            'reunido' => '¡Qué alegría! Marcamos el reporte como reunido y ya no aparece en el listado.',
+            'cerrado' => 'Cerraste el reporte: ya no aparece en el listado ni recibe contactos. Puedes reabrirlo cuando quieras.',
+            default => 'Reabriste el reporte: vuelve a aparecer en el listado.',
+        };
+
+        if ($report->status === 'activo') {
+            PetReportUpdated::dispatch($report);
+        }
+
+        return redirect()->route('reports.manage', $token)->with('status', $message);
+    }
+
+    private function closedRedirect(string $token): RedirectResponse
+    {
+        return redirect()->route('reports.manage', $token)
+            ->with('status', 'Este reporte está cerrado. Reábrelo para poder editarlo.');
+    }
+
+    /**
+     * Sprint 4 — HU-05: mientras se llena el formulario (antes de publicar)
+     * se buscan reportes del tipo contrario que se parezcan.
+     */
+    public function similar(Request $request): JsonResponse
+    {
+        $bounds = config('pets.bounds');
+
+        $data = $request->validate([
+            'type' => ['required', Rule::in(['perdida', 'encontrada'])],
+            'species' => ['required', Rule::in(array_keys(config('pets.species')))],
+            'latitude' => ['required', 'numeric', 'between:'.$bounds['lat_min'].','.$bounds['lat_max']],
+            'longitude' => ['required', 'numeric', 'between:'.$bounds['lng_min'].','.$bounds['lng_max']],
+            'breed' => ['nullable', 'string', 'max:100'],
+            'sex' => ['nullable', 'string', 'max:10'],
+            'size' => ['nullable', 'string', 'max:20'],
+            'colors' => ['nullable', 'array', 'max:'.config('pets.max_colors')],
+            'colors.*' => ['string', 'max:30'],
+            'event_date' => ['nullable', 'date'],
+        ]);
+
+        $draft = new PetReport(collect($data)->except('colors')->all());
+        $draft->color = implode(',', $data['colors'] ?? []);
+        if ($draft->breed === config('pets.unknown_breed')) {
+            $draft->breed = null;
+        }
+
+        $reports = $draft->similarReports()->map(fn (PetReport $report) => [
+            'id' => $report->id,
+            'url' => $report->public_url,
+            'name' => $report->display_name,
+            'species' => $report->species_label,
+            'emoji' => $report->species_emoji,
+            'photo_url' => $report->photo_url,
+            'location' => $report->location_reference,
+            'distance_km' => round($report->distance_km, 1),
+            'score' => $report->match_score,
+            'reasons' => $report->match_reasons,
+            'published' => $report->created_at->locale('es')->diffForHumans(),
+        ]);
+
+        return response()->json(['count' => $reports->count(), 'reports' => $reports]);
+    }
+
+    /** HU-10: copia la foto del perfil para que el reporte tenga la suya. */
+    private function copyProfilePhoto(PetProfile $profile): string
+    {
+        if (Str::startsWith($profile->photo_path, 'images/')) {
+            return $profile->photo_path;
+        }
+
+        $copy = 'pet-reports/'.Str::uuid().'.'.pathinfo($profile->photo_path, PATHINFO_EXTENSION);
+        Storage::disk('public')->copy($profile->photo_path, $copy);
+
+        return $copy;
     }
 
     /**

@@ -2,20 +2,24 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\DescribesPet;
+use App\Models\Concerns\Flaggable;
 use App\Support\GeoDistance;
+use App\Support\ReportMatcher;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class PetReport extends Model
 {
-    use HasFactory;
+    use DescribesPet, Flaggable, HasFactory;
 
     protected $fillable = [
         'management_token',
+        'pet_profile_id',
         'type',
         'species',
         'breed',
@@ -41,6 +45,7 @@ class PetReport extends Model
         'event_date' => 'date',
         'contact_whatsapp' => 'boolean',
         'reunited_at' => 'datetime',
+        'hidden_at' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -71,62 +76,15 @@ class PetReport extends Model
         return 'id';
     }
 
-    /** Etiqueta legible de la especie (ej. "perro" -> "Perro"). */
-    public function getSpeciesLabelAttribute(): string
+    /** HU-10: perfil digital desde el que se creó el reporte de pérdida. */
+    public function profile(): BelongsTo
     {
-        return config("pets.species.{$this->species}.label", ucfirst((string) $this->species));
-    }
-
-    public function getSpeciesEmojiAttribute(): string
-    {
-        return config("pets.species.{$this->species}.emoji", '🐾');
-    }
-
-    /**
-     * Los colores se guardan como llaves separadas por coma ("negro,blanco").
-     * Los reportes del Sprint 1 guardaban texto libre: se muestran tal cual.
-     */
-    public function getColorLabelsAttribute(): string
-    {
-        $catalog = config('pets.colors');
-
-        return collect(explode(',', (string) $this->color))
-            ->map(fn ($key) => trim($key))
-            ->filter()
-            ->map(fn ($key) => $catalog[$key]['label'] ?? $key)
-            ->implode(', ');
-    }
-
-    /**
-     * URL pública de la foto. Las fotos subidas viven en el disco "public";
-     * las de los datos de prueba (DatabaseSeeder) vienen incluidas en el
-     * repositorio, en public/images/seed/.
-     */
-    public function getPhotoUrlAttribute(): ?string
-    {
-        if (! $this->photo_path) {
-            return null;
-        }
-
-        return Str::startsWith($this->photo_path, 'images/')
-            ? asset($this->photo_path)
-            : Storage::url($this->photo_path);
+        return $this->belongsTo(PetProfile::class, 'pet_profile_id');
     }
 
     public function getDisplayNameAttribute(): string
     {
         return $this->pet_name ?: ($this->type === 'perdida' ? 'Mascota perdida' : 'Mascota encontrada');
-    }
-
-    /** Número en formato internacional para enlaces de WhatsApp (HU-06). */
-    public function getWhatsappNumberAttribute(): ?string
-    {
-        $digits = preg_replace('/\D/', '', (string) $this->contact_phone);
-        if (! $digits) {
-            return null;
-        }
-
-        return strlen($digits) === 10 ? '57'.$digits : $digits;
     }
 
     /**
@@ -165,9 +123,34 @@ class PetReport extends Model
         ];
     }
 
+    /**
+     * Reportes que siguen buscando. HU-20: los ocultos por denuncias tampoco
+     * cuentan (no aparecen en el listado, el mapa, las alertas ni las coincidencias).
+     */
     public function scopeActive(Builder $query): Builder
     {
-        return $query->where('status', 'activo');
+        return $query->where('status', 'activo')->visible();
+    }
+
+    /**
+     * HU-05: reportes del tipo contrario que podrían ser esta misma mascota.
+     *
+     * @return Collection<int, self>
+     */
+    public function similarReports(?int $limit = null): Collection
+    {
+        return ReportMatcher::for($this, $limit);
+    }
+
+    /** HU-20 */
+    public function flagLabel(): string
+    {
+        return "el reporte «{$this->display_name}»";
+    }
+
+    public function flagUrl(): string
+    {
+        return $this->public_url;
     }
 
     public function scopeOfType(Builder $query, string $type): Builder

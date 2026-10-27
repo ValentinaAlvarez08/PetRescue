@@ -104,6 +104,29 @@
         </div>
     </section>
 
+    {{-- ============ Guías y perfil digital (Sprint 4 — HU-21 / HU-10) ============ --}}
+    <section class="grid lg:grid-cols-[1.4fr_1fr] gap-4">
+        <div class="rounded-3xl bg-white border border-ink-100 shadow-soft p-6 sm:p-8">
+            <p class="text-sm font-extrabold uppercase tracking-wider text-brand-600">Guías rápidas</p>
+            <h2 class="text-2xl font-black">Qué hacer, paso a paso</h2>
+            <div class="mt-4 grid sm:grid-cols-2 gap-2">
+                @foreach (collect(config('guides.guides'))->take(4) as $slug => $guide)
+                    <a href="{{ route('guides.show', $slug) }}" class="flex items-center gap-3 rounded-2xl bg-ink-50 hover:bg-brand-50 p-3">
+                        <span class="text-2xl">{{ $guide['emoji'] }}</span>
+                        <span class="text-sm font-bold leading-tight">{{ $guide['title'] }}</span>
+                    </a>
+                @endforeach
+            </div>
+            <a href="{{ route('guides.index') }}" class="inline-block mt-4 font-bold text-brand-700 hover:underline">Ver todas las guías →</a>
+        </div>
+        <div class="rounded-3xl bg-gradient-to-br from-brand-500 to-rose-500 text-white p-6 sm:p-8 flex flex-col">
+            <p class="text-3xl">🪪</p>
+            <h2 class="text-2xl font-black mt-2">Crea su perfil digital</h2>
+            <p class="text-white/85 mt-1 flex-1">Foto, señas y datos de salud en un solo lugar, con un QR para la placa del collar. Si se pierde, el reporte se crea con un clic.</p>
+            <a href="{{ route('profiles.create') }}" class="mt-4 rounded-2xl bg-white text-ink-900 hover:bg-ink-50 font-extrabold px-5 py-3 text-center">Crear perfil gratis</a>
+        </div>
+    </section>
+
     {{-- ============ Reportes recientes ============ --}}
     <section>
         <div class="flex items-end justify-between gap-4 mb-5">

@@ -104,4 +104,22 @@ return [
         'suggested_labels' => ['Casa', 'Trabajo', 'Finca', 'Casa de mis papás', 'Universidad'],
     ],
 
+    // Sprint 4 — HU-05 / HU-08: reportes similares y avisos de coincidencia.
+    // Se comparan perdidas con encontradas de la misma especie dentro del
+    // radio; el puntaje (0 a 100) suma distancia, colores, raza, sexo,
+    // tamaño y fechas (ver App\Support\ReportMatcher).
+    'matching' => [
+        'radius_km' => 10,
+        'max_days_apart' => 60,
+        'min_score' => 50,
+        'limit' => 4,
+    ],
+
+    // Sprint 4 — HU-10: perfil digital de la mascota.
+    'sterilized' => [
+        'si' => 'Sí',
+        'no' => 'No',
+        'no_se' => 'No sé',
+    ],
+
 ];

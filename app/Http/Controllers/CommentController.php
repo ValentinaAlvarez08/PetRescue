@@ -13,7 +13,7 @@ class CommentController extends Controller
 {
     public function store(StoreCommentRequest $request, string $topic, Post $post): RedirectResponse
     {
-        abort_unless($post->topic === $topic, 404);
+        abort_unless($post->topic === $topic && ! $post->isHidden(), 404);
 
         $post->comments()->create($request->validated());
 

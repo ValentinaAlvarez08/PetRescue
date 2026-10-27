@@ -51,7 +51,8 @@ class PostController extends Controller
     /** HU-18: detalle público con comentarios y botón "Me sirvió". */
     public function show(Request $request, string $topic, Post $post): View
     {
-        abort_unless($post->topic === $topic, 404);
+        // HU-20: una publicación oculta por denuncias no se muestra.
+        abort_unless($post->topic === $topic && ! $post->isHidden(), 404);
         $post->load('comments');
 
         return view('posts.show', [

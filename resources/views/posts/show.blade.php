@@ -35,6 +35,10 @@
                 @endif
                 <span class="text-sm text-ink-500">{{ $post->helpful_count === 1 ? 'persona encontró' : 'personas encontraron' }} útil esta publicación</span>
             </div>
+
+            {{-- Sprint 4 — HU-20 --}}
+            <x-flag-form class="mt-6 pt-4 border-t border-ink-100" :action="route('flags.post', [$slug, $post])" target="publicacion-{{ $post->id }}"
+                         label="Denunciar esta publicación" />
         </div>
     </article>
 
@@ -46,12 +50,14 @@
 
         <div class="space-y-3">
             @forelse ($post->comments as $comment)
-                <div class="rounded-2xl bg-white border border-ink-100 shadow-soft p-4" data-role="comment">
+                <div id="comentario-{{ $comment->id }}" class="rounded-2xl bg-white border border-ink-100 shadow-soft p-4 scroll-mt-24" data-role="comment">
                     <p class="text-sm">
                         <span class="font-bold">{{ $comment->nickname }}</span>
                         <time class="text-ink-500" datetime="{{ $comment->created_at->toIso8601String() }}">· {{ $comment->created_at->format('d/m/Y H:i') }}</time>
                     </p>
                     <p class="text-ink-700 mt-1 whitespace-pre-line">{{ $comment->body }}</p>
+                    {{-- Sprint 4 — HU-20 --}}
+                    <x-flag-form class="mt-2 text-xs" :action="route('flags.comment', $comment)" target="comentario-{{ $comment->id }}" />
                 </div>
             @empty
                 <p class="text-ink-500">Nadie ha comentado todavía. ¡Sé la primera persona en ayudar!</p>
