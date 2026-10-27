@@ -48,6 +48,8 @@
                     <p class="text-xs lg:text-sm font-bold text-ink-500">{{ $s['l'] }}</p>
                 </div>
             @endforeach
+            {{-- Sprint 4 — HU-12 --}}
+            <a href="{{ route('stats.index') }}" class="col-span-3 lg:col-span-1 text-center lg:text-left text-sm font-bold text-brand-700 hover:underline">Ver estadísticas e historias de éxito →</a>
         </div>
     </div>
 </section>
@@ -124,9 +126,9 @@
     <section class="rounded-3xl bg-ink-900 text-white p-8 sm:p-10 grid md:grid-cols-[1fr_auto] gap-6 items-center">
         <div>
             <h2 class="text-2xl sm:text-3xl font-black">Sé los ojos de tu barrio 👀</h2>
-            <p class="text-white/70 mt-2 max-w-2xl">Recibe un correo cuando alguien reporte una mascota perdida o encontrada cerca de ti. Sin crear cuenta y te das de baja cuando quieras.</p>
+            <p class="text-white/70 mt-2 max-w-2xl">Recibe un correo cuando alguien reporte una mascota perdida o encontrada cerca de tu casa, tu trabajo o tu finca. Sin crear cuenta y te das de baja cuando quieras.</p>
         </div>
-        <a href="{{ route('subscribers.create') }}" class="rounded-2xl bg-brand-500 hover:bg-brand-600 font-extrabold px-6 py-4 text-center">Activar avisos</a>
+        <a href="{{ route('subscribers.create') }}" class="rounded-2xl bg-brand-500 hover:bg-brand-600 font-extrabold px-6 py-4 text-center">Activar alertas</a>
     </section>
 </div>
 @endsection

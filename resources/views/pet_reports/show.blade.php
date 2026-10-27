@@ -2,7 +2,7 @@
 
 @php
     $lost = $report->type === 'perdida';
-    $publicUrl = route('reports.show', $report);
+    $publicUrl = $report->public_url;
     $waText = rawurlencode(($lost
         ? "Hola, vi en PetRescue el reporte de {$report->display_name} ({$report->species_label}) y creo que tengo información: "
         : "Hola, vi en PetRescue el reporte de la mascota que encontraste ({$report->species_label}) y creo que puede ser mía: ").$publicUrl);
@@ -11,6 +11,36 @@
 
 @section('title', $report->display_name.' — PetRescue')
 
+{{-- Sprint 4 — HU-09 (CID 3): vista previa al compartir (foto, nombre y tipo de reporte).
+     También en la vista de gestión apunta al enlace público, nunca al privado (CID 4). --}}
+@push('head')
+    @php
+        $ogTitle = ($lost ? 'Mascota perdida' : 'Mascota encontrada').": {$report->display_name} ({$report->species_label})";
+        $ogDescription = \Illuminate\Support\Str::limit(trim(($report->location_reference ? "📍 {$report->location_reference}. " : '').$report->description), 190);
+    @endphp
+    <link rel="canonical" href="{{ $publicUrl }}">
+    <meta name="description" content="{{ $ogDescription }}">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="PetRescue">
+    <meta property="og:locale" content="es_CO">
+    <meta property="og:url" content="{{ $publicUrl }}">
+    <meta property="og:title" content="{{ $ogTitle }}">
+    <meta property="og:description" content="{{ $ogDescription }}">
+    @if ($report->photo_url)
+        <meta property="og:image" content="{{ url($report->photo_url) }}">
+        <meta property="og:image:alt" content="Foto de {{ $report->display_name }}">
+    @endif
+    <meta name="twitter:card" content="{{ $report->photo_url ? 'summary_large_image' : 'summary' }}">
+    <meta name="twitter:title" content="{{ $ogTitle }}">
+    <meta name="twitter:description" content="{{ $ogDescription }}">
+    @if ($report->photo_url)
+        <meta name="twitter:image" content="{{ url($report->photo_url) }}">
+    @endif
+    @if ($canManage)
+        <meta name="robots" content="noindex, nofollow">
+    @endif
+@endpush
+
 @section('content')
 <a href="{{ route('reports.index') }}" class="text-sm font-bold text-ink-500 hover:text-ink-900">← Todos los reportes</a>
 
@@ -18,7 +48,7 @@
     <div class="mt-4 rounded-2xl border-2 border-dashed border-brand-300 bg-brand-50 p-5">
         <p class="font-extrabold text-brand-900">🔐 Este es tu enlace privado de gestión</p>
         <p class="text-sm text-brand-900/80 mt-1">Guárdalo: es la única forma de actualizar o cerrar este reporte. No lo compartas.
-            Para difundir el caso usa el enlace público.</p>
+            Para difundir el caso usa el botón Compartir o el enlace público: <a href="{{ $publicUrl }}" class="font-bold underline">{{ $publicUrl }}</a></p>
         <div class="mt-3 flex flex-col sm:flex-row gap-2">
             <input readonly value="{{ url()->current() }}" class="flex-1 rounded-xl border border-brand-200 bg-white px-3 py-2 text-sm" onclick="this.select()">
             <button type="button" data-copy="{{ url()->current() }}" class="rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold px-4 py-2 text-sm">Copiar enlace privado</button>
@@ -79,11 +109,12 @@
                         <a href="mailto:{{ $report->contact_email }}?subject={{ rawurlencode('PetRescue: '.$report->display_name) }}"
                            class="flex items-center justify-center gap-2 rounded-xl border border-ink-200 hover:bg-ink-50 font-bold py-3">✉️ Enviar correo</a>
                     @endif
-                    <button type="button" data-share="{{ $publicUrl }}" data-title="{{ $report->display_name }}"
-                            class="flex items-center justify-center gap-2 rounded-xl border border-ink-200 hover:bg-ink-50 font-bold py-3">🔗 Compartir</button>
                 </div>
             </div>
         @endif
+
+        {{-- HU-09: compartir en redes sociales --}}
+        @include('pet_reports._share')
 
         <div class="bg-white rounded-3xl shadow-soft border border-ink-100 p-3">
             <div id="report-map" class="h-64 rounded-2xl"></div>
@@ -119,14 +150,29 @@
     L.marker([lat, lng], { icon: L.divIcon({ className: '', iconSize: [36, 36], iconAnchor: [18, 36],
         html: '<div class="pin" style="background:{{ $lost ? '#f43f5e' : '#059669' }}"><span>{{ $report->species_emoji }}</span></div>' }) }).addTo(map);
 
+    function copyText(text) {
+        if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
+        // Respaldo para navegadores sin API de portapapeles (o sitio sin https).
+        const tmp = document.createElement('textarea');
+        tmp.value = text;
+        document.body.appendChild(tmp);
+        tmp.select();
+        document.execCommand('copy');
+        tmp.remove();
+        return Promise.resolve();
+    }
     document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', () => {
-        navigator.clipboard.writeText(b.dataset.copy).then(() => { b.textContent = '¡Copiado!'; });
+        copyText(b.dataset.copy).then(() => { b.textContent = b.dataset.copiedText || '¡Copiado!'; });
     }));
-    document.querySelectorAll('[data-share]').forEach(b => b.addEventListener('click', () => {
-        const url = b.dataset.share;
-        if (navigator.share) { navigator.share({ title: b.dataset.title, url: url }).catch(() => {}); }
-        else { navigator.clipboard.writeText(url).then(() => { b.textContent = '¡Enlace copiado!'; }); }
-    }));
+
+    // HU-09 (CID 1): Compartir despliega WhatsApp, Facebook, X y copiar enlace.
+    document.querySelectorAll('[data-share-box]').forEach(box => {
+        const toggle = box.querySelector('[data-share-toggle]'), options = box.querySelector('[data-share-options]');
+        toggle.addEventListener('click', () => {
+            const open = options.classList.toggle('hidden') === false;
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+    });
 })();
 </script>
 @endpush
