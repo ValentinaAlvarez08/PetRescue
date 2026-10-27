@@ -6,6 +6,7 @@ use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PetReportController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\StatsController;
 use App\Http\Controllers\SubscriberController;
 use Illuminate\Support\Facades\Route;
 
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 | Sprint 2 — Comunidad PetRescue
 | Sprint 3 — Comunidad por temas, comentarios y filtros (HU-17, HU-18, HU-04)
+| Sprint 4 — Alertas de varias zonas, compartir y estadísticas (HU-11, HU-09, HU-12)
 |--------------------------------------------------------------------------
 */
 
@@ -52,7 +54,16 @@ Route::get('/publicacion/{token}', [PostController::class, 'manage'])->name('pos
 Route::patch('/publicacion/{token}', [PostController::class, 'update'])->name('posts.update');
 Route::delete('/publicacion/{token}', [PostController::class, 'destroy'])->name('posts.destroy');
 
-// Avisos por correo de reportes cercanos
+// Avisos por correo de reportes cercanos (Sprint 4 — HU-11: varias zonas por correo)
 Route::get('/notificaciones', [SubscriberController::class, 'create'])->name('subscribers.create');
 Route::post('/notificaciones', [SubscriberController::class, 'store'])->name('subscribers.store');
 Route::get('/notificaciones/{token}/baja', [SubscriberController::class, 'unsubscribe'])->name('subscribers.unsubscribe');
+
+// HU-11: administración de las zonas a través del enlace con token (sin login)
+Route::get('/alertas/{token}', [SubscriberController::class, 'manage'])->name('subscribers.manage');
+Route::post('/alertas/{token}/zonas', [SubscriberController::class, 'storeZone'])->name('subscribers.zones.store');
+Route::patch('/alertas/{token}/zonas/{zone}', [SubscriberController::class, 'updateZone'])->whereNumber('zone')->name('subscribers.zones.update');
+Route::delete('/alertas/{token}/zonas/{zone}', [SubscriberController::class, 'destroyZone'])->whereNumber('zone')->name('subscribers.zones.destroy');
+
+// HU-12: estadísticas de reencuentros
+Route::get('/estadisticas', [StatsController::class, 'index'])->name('stats.index');

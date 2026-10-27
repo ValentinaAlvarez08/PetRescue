@@ -3,6 +3,7 @@
     El usuario marca el punto con un clic (o arrastrando el pin), busca una
     dirección o usa su ubicación actual. Guarda lat/lng en campos ocultos y,
     si existe, completa el campo de "punto de referencia" con la dirección.
+    Sprint 4 — HU-11: con radiusInput dibuja el círculo del radio elegido.
 --}}
 @props([
     'latName' => 'latitude',
@@ -10,6 +11,7 @@
     'lat' => null,
     'lng' => null,
     'referenceInput' => null, // id del input de referencia a autocompletar
+    'radiusInput' => null, // id del input con el radio en km (dibuja el círculo)
     'color' => '#f97316',
     'emoji' => '📍',
     'height' => 'h-80',
@@ -59,6 +61,7 @@
     const $ = (role) => root.querySelector('[data-role="' + role + '"]');
     const latInput = $('lat'), lngInput = $('lng'), status = $('status'), hint = $('hint');
     const refInput = @json($referenceInput) ? document.getElementById(@json($referenceInput)) : null;
+    const radiusInput = @json($radiusInput) ? document.getElementById(@json($radiusInput)) : null;
     const bounds = @json($bounds);
     const center = @json($center);
 
@@ -73,7 +76,22 @@
         html: '<div class="pin" style="background:{{ $color }}"><span>{{ $emoji }}</span></div>',
         iconSize: [36, 36], iconAnchor: [18, 36],
     });
-    let marker = null;
+    let marker = null, circle = null;
+
+    function drawCircle() {
+        if (!radiusInput || !marker) return;
+        const meters = (parseFloat(radiusInput.value) || 1) * 1000;
+        if (!circle) {
+            circle = L.circle(marker.getLatLng(), { radius: meters, color: '{{ $color }}', weight: 2, fillOpacity: 0.12 }).addTo(map);
+        } else {
+            circle.setLatLng(marker.getLatLng());
+            circle.setRadius(meters);
+        }
+    }
+    if (radiusInput) {
+        radiusInput.addEventListener('input', drawCircle);
+        radiusInput.addEventListener('change', () => { if (circle) map.fitBounds(circle.getBounds(), { padding: [20, 20] }); });
+    }
 
     function inColombia(lat, lng) {
         return lat >= bounds.lat_min && lat <= bounds.lat_max && lng >= bounds.lng_min && lng <= bounds.lng_max;
@@ -90,6 +108,7 @@
         lngInput.value = lng.toFixed(7);
         if (!marker) {
             marker = L.marker([lat, lng], { icon: icon, draggable: true }).addTo(map);
+            marker.on('drag', drawCircle);
             marker.on('dragend', function () {
                 const p = marker.getLatLng();
                 setPoint(p.lat, p.lng, { reverse: true });
@@ -97,7 +116,8 @@
         } else {
             marker.setLatLng([lat, lng]);
         }
-        if (opts.fly) map.setView([lat, lng], 16);
+        drawCircle();
+        if (opts.fly) circle ? map.fitBounds(circle.getBounds(), { padding: [20, 20] }) : map.setView([lat, lng], 16);
         hint.classList.add('hidden');
         status.textContent = '✅ Lugar marcado. Puedes arrastrar el pin para ajustarlo.';
         status.className = 'text-sm text-emerald-700 font-semibold';
