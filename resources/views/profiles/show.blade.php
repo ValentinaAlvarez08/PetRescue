@@ -19,7 +19,7 @@
 <div class="max-w-4xl mx-auto">
     @if ($lostReport)
         <a href="{{ route('reports.show', $lostReport) }}" data-role="lost-banner"
-           class="mb-5 flex items-center justify-between gap-4 rounded-2xl bg-rose-500 hover:bg-rose-600 text-white p-5 shadow-soft">
+           class="mb-5 flex items-center justify-between gap-4 rounded-2xl bg-lost-500 hover:bg-lost-600 text-white p-5 shadow-soft">
             <span>
                 <span class="block text-xl font-black">🚨 ¡{{ $profile->name }} está perdida!</span>
                 <span class="text-white/90 text-sm">Su familia la está buscando desde el {{ optional($lostReport->event_date)->format('d/m/Y') ?? $lostReport->created_at->format('d/m/Y') }}. Si la ves, avísales.</span>
@@ -61,7 +61,7 @@
                         <li><span class="font-bold">Vacunas:</span> {{ $profile->vaccines }}</li>
                     @endif
                     @if ($profile->health_notes)
-                        <li class="rounded-xl bg-amber-50 border border-amber-200 p-3 text-amber-900"><span class="font-bold">⚠️ Importante:</span> {{ $profile->health_notes }}</li>
+                        <li class="rounded-xl bg-yellow-50 border border-yellow-200 p-3 text-yellow-900"><span class="font-bold">⚠️ Importante:</span> {{ $profile->health_notes }}</li>
                     @endif
                 </ul>
             </div>

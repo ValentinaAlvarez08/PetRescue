@@ -51,17 +51,17 @@
         </div>
 
         {{-- CID 4: reportar la pérdida con los datos del perfil --}}
-        <div class="rounded-3xl border-2 {{ $lostReport ? 'border-rose-300 bg-rose-50' : 'border-ink-100 bg-white' }} shadow-soft p-6">
+        <div class="rounded-3xl border-2 {{ $lostReport ? 'border-lost-300 bg-lost-50' : 'border-ink-100 bg-white' }} shadow-soft p-6">
             @if ($lostReport)
-                <h2 class="font-extrabold text-lg text-rose-800">🚨 {{ $profile->name }} tiene un reporte de pérdida activo</h2>
-                <p class="text-sm text-rose-900/80 mt-1">El perfil público muestra el aviso «¡Está perdida!» con el enlace al reporte.</p>
-                <a href="{{ route('reports.show', $lostReport) }}" class="mt-4 block text-center rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-extrabold py-3">Ver el reporte</a>
-                <p class="text-xs text-rose-900/70 mt-2">Para marcarlo como reunido usa el enlace privado que recibiste al publicar el reporte.</p>
+                <h2 class="font-extrabold text-lg text-lost-800">🚨 {{ $profile->name }} tiene un reporte de pérdida activo</h2>
+                <p class="text-sm text-lost-900/80 mt-1">El perfil público muestra el aviso «¡Está perdida!» con el enlace al reporte.</p>
+                <a href="{{ route('reports.show', $lostReport) }}" class="mt-4 block text-center rounded-xl bg-lost-500 hover:bg-lost-600 text-white font-extrabold py-3">Ver el reporte</a>
+                <p class="text-xs text-lost-900/70 mt-2">Para marcarlo como reunido usa el enlace privado que recibiste al publicar el reporte.</p>
             @else
                 <h2 class="font-extrabold text-lg">😿 ¿Se perdió {{ $profile->name }}?</h2>
                 <p class="text-sm text-ink-500 mt-1">Crea el reporte con la foto, las señas y tu contacto ya llenos. Solo tienes que marcar dónde se perdió.</p>
                 <a href="{{ route('reports.create', ['type' => 'perdida', 'perfil' => $profile->management_token]) }}" data-role="report-lost"
-                   class="mt-4 block text-center rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-extrabold py-3">Reportar que se perdió</a>
+                   class="mt-4 block text-center rounded-xl bg-lost-500 hover:bg-lost-600 text-white font-extrabold py-3">Reportar que se perdió</a>
             @endif
 
             @if ($profile->reports->isNotEmpty())
@@ -88,14 +88,14 @@
 
     <form action="{{ route('profiles.destroy', $profile->management_token) }}" method="POST"
           onsubmit="return confirm('¿Eliminar este perfil? El QR de la placa dejará de funcionar.');"
-          class="rounded-3xl border border-rose-200 bg-rose-50 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          class="rounded-3xl border border-lost-200 bg-lost-50 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         @csrf
         @method('DELETE')
         <div>
-            <p class="font-extrabold text-rose-800">Eliminar perfil</p>
-            <p class="text-sm text-rose-700">El enlace público y el QR dejarán de funcionar. Los reportes que hayas publicado se conservan.</p>
+            <p class="font-extrabold text-lost-800">Eliminar perfil</p>
+            <p class="text-sm text-lost-700">El enlace público y el QR dejarán de funcionar. Los reportes que hayas publicado se conservan.</p>
         </div>
-        <button type="submit" class="shrink-0 px-5 py-3 rounded-xl font-bold text-white bg-rose-600 hover:bg-rose-700">Eliminar</button>
+        <button type="submit" class="shrink-0 px-5 py-3 rounded-xl font-bold text-white bg-lost-600 hover:bg-lost-700">Eliminar</button>
     </form>
 </div>
 @endsection

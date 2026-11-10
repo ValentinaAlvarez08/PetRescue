@@ -4,7 +4,7 @@
 
 @php
     $input = 'w-full rounded-xl border border-ink-200 bg-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-400';
-    $err = fn ($field) => $errors->has($field) ? ' border-rose-400 bg-rose-50' : '';
+    $err = fn ($field) => $errors->has($field) ? ' border-lost-400 bg-lost-50' : '';
 @endphp
 
 @section('content')
@@ -22,7 +22,7 @@
     </div>
 
     @if ($errors->any())
-        <div class="mb-5 bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl text-sm">
+        <div class="mb-5 bg-lost-50 border border-lost-200 text-lost-800 px-4 py-3 rounded-xl text-sm">
             <p class="font-bold mb-1">Revisa estos datos:</p>
             <ul class="list-disc list-inside space-y-0.5">
                 @foreach ($errors->all() as $error)
@@ -39,7 +39,7 @@
         <section class="space-y-5">
             <h2 class="text-lg font-extrabold">El negocio</h2>
             <div>
-                <p class="block text-sm font-bold mb-2">¿A qué se dedica? <span class="text-rose-500">*</span></p>
+                <p class="block text-sm font-bold mb-2">¿A qué se dedica? <span class="text-lost-500">*</span></p>
                 <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
                     @foreach ($categories as $key => $cat)
                         <label class="cursor-pointer">
@@ -54,11 +54,11 @@
             </div>
 
             <div>
-                <label for="name" class="block text-sm font-bold mb-1">Nombre del negocio <span class="text-rose-500">*</span></label>
+                <label for="name" class="block text-sm font-bold mb-1">Nombre del negocio <span class="text-lost-500">*</span></label>
                 <input id="name" name="name" type="text" maxlength="120" value="{{ old('name') }}" class="{{ $input }}{{ $err('name') }}">
             </div>
             <div>
-                <label for="description" class="block text-sm font-bold mb-1">¿Qué ofrece? <span class="text-rose-500">*</span></label>
+                <label for="description" class="block text-sm font-bold mb-1">¿Qué ofrece? <span class="text-lost-500">*</span></label>
                 <textarea id="description" name="description" rows="3" maxlength="500"
                           placeholder="Ej: veterinaria con consulta general, vacunación y cirugías. Atendemos perros, gatos y conejos."
                           class="{{ $input }}{{ $err('description') }}">{{ old('description') }}</textarea>
@@ -74,7 +74,7 @@
             <h2 class="text-lg font-extrabold">Ubicación y contacto</h2>
             <div class="grid sm:grid-cols-2 gap-4">
                 <div>
-                    <label for="address" class="block text-sm font-bold mb-1">Dirección <span class="text-rose-500">*</span></label>
+                    <label for="address" class="block text-sm font-bold mb-1">Dirección <span class="text-lost-500">*</span></label>
                     <input id="address" name="address" type="text" maxlength="200" value="{{ old('address') }}" placeholder="Ej: Calle 18 # 25-30, Pasto"
                            class="{{ $input }}{{ $err('address') }}">
                 </div>
@@ -85,16 +85,16 @@
                 </div>
             </div>
             <div>
-                <p class="block text-sm font-bold mb-1">Marca el negocio en el mapa <span class="text-rose-500">*</span></p>
+                <p class="block text-sm font-bold mb-1">Marca el negocio en el mapa <span class="text-lost-500">*</span></p>
                 <x-map-picker :lat="old('latitude')" :lng="old('longitude')" emoji="🏪" height="h-72" />
             </div>
             <div class="grid sm:grid-cols-2 gap-4">
                 <div>
-                    <label for="phone" class="block text-sm font-bold mb-1">Teléfono <span class="text-rose-500">*</span></label>
+                    <label for="phone" class="block text-sm font-bold mb-1">Teléfono <span class="text-lost-500">*</span></label>
                     <input id="phone" name="phone" type="tel" inputmode="numeric" maxlength="14" value="{{ old('phone') }}" placeholder="300 123 4567 o 602 7xx xxxx"
                            class="{{ $input }}{{ $err('phone') }}">
                     <label class="inline-flex items-center gap-2 mt-2 text-sm">
-                        <input type="checkbox" name="has_whatsapp" value="1" class="w-4 h-4 accent-emerald-600" @checked(old('has_whatsapp'))>
+                        <input type="checkbox" name="has_whatsapp" value="1" class="w-4 h-4 accent-found-600" @checked(old('has_whatsapp'))>
                         Este número tiene WhatsApp
                     </label>
                 </div>
@@ -110,11 +110,11 @@
             <p class="text-sm text-ink-500 -mt-3">No se publica: solo lo usamos para contarte cómo va la revisión.</p>
             <div class="grid sm:grid-cols-2 gap-4">
                 <div>
-                    <label for="requester_name" class="block text-sm font-bold mb-1">Tu nombre <span class="text-rose-500">*</span></label>
+                    <label for="requester_name" class="block text-sm font-bold mb-1">Tu nombre <span class="text-lost-500">*</span></label>
                     <input id="requester_name" name="requester_name" type="text" maxlength="80" value="{{ old('requester_name') }}" class="{{ $input }}{{ $err('requester_name') }}">
                 </div>
                 <div>
-                    <label for="requester_email" class="block text-sm font-bold mb-1">Tu correo <span class="text-rose-500">*</span></label>
+                    <label for="requester_email" class="block text-sm font-bold mb-1">Tu correo <span class="text-lost-500">*</span></label>
                     <input id="requester_email" name="requester_email" type="email" maxlength="150" value="{{ old('requester_email') }}" class="{{ $input }}{{ $err('requester_email') }}">
                 </div>
             </div>

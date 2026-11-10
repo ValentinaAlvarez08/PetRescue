@@ -26,7 +26,7 @@
         </ol>
 
         @if ($guide['warning'])
-            <div class="mt-6 rounded-2xl bg-amber-50 border border-amber-200 p-4 text-amber-900">
+            <div class="mt-6 rounded-2xl bg-yellow-50 border border-yellow-200 p-4 text-yellow-900">
                 <p class="font-extrabold">⚠️ Importante</p>
                 <p class="text-sm mt-1">{{ $guide['warning'] }}</p>
             </div>

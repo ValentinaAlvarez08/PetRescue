@@ -78,8 +78,8 @@
 <div class="relative mb-8">
     <div id="map" class="w-full h-96 rounded-3xl border border-ink-100 shadow-soft z-0"></div>
     <div class="absolute top-3 right-3 z-[500] bg-white/95 rounded-xl shadow-soft px-3 py-2 text-xs font-bold space-y-1">
-        <p><span class="inline-block w-3 h-3 rounded-full bg-rose-500 align-middle mr-1"></span>Perdida</p>
-        <p><span class="inline-block w-3 h-3 rounded-full bg-emerald-600 align-middle mr-1"></span>Encontrada</p>
+        <p><span class="inline-block w-3 h-3 rounded-full bg-lost-500 align-middle mr-1"></span>Perdida</p>
+        <p><span class="inline-block w-3 h-3 rounded-full bg-found-600 align-middle mr-1"></span>Encontrada</p>
     </div>
 </div>
 
@@ -112,14 +112,14 @@
     const esc = s => String(s ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 
     const markers = reports.map(r => {
-        const color = r.type === 'perdida' ? '#f43f5e' : '#059669';
+        const color = r.type === 'perdida' ? '#c026d3' : '#0891b2';
         const m = L.marker([r.lat, r.lng], { icon: L.divIcon({ className: '', iconSize: [36, 36], iconAnchor: [18, 36], popupAnchor: [0, -32],
             html: '<div class="pin" style="background:' + color + '"><span>' + r.emoji + '</span></div>' }) }).addTo(map);
         m.bindPopup(
             '<div style="width:190px">' +
             (r.photo_url ? '<img src="' + esc(r.photo_url) + '" style="width:100%;height:110px;object-fit:cover;border-radius:10px;margin-bottom:6px">' : '') +
-            '<strong>' + esc(r.pet_name) + '</strong><br><span style="color:#78716c">' + esc(r.species) + ' · ' + (r.type === 'perdida' ? 'Perdida' : 'Encontrada') + '</span><br>' +
-            '<a href="' + esc(r.url) + '" style="font-weight:700;color:#c2410c">Ver reporte →</a></div>'
+            '<strong>' + esc(r.pet_name) + '</strong><br><span style="color:#64748b">' + esc(r.species) + ' · ' + (r.type === 'perdida' ? 'Perdida' : 'Encontrada') + '</span><br>' +
+            '<a href="' + esc(r.url) + '" style="font-weight:700;color:#4338ca">Ver reporte →</a></div>'
         );
         return m;
     });

@@ -12,7 +12,7 @@
     <p class="text-sm font-extrabold uppercase tracking-wider text-brand-600">Moderación</p>
     <h1 class="text-3xl font-black mt-1">Revisar {{ $content->flagLabel() }}</h1>
     <p class="mt-2">
-        <span class="text-xs font-extrabold uppercase px-3 py-1 rounded-full {{ $content->isHidden() ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700' }}" data-role="flag-status">
+        <span class="text-xs font-extrabold uppercase px-3 py-1 rounded-full {{ $content->isHidden() ? 'bg-lost-100 text-lost-700' : 'bg-found-100 text-found-700' }}" data-role="flag-status">
             {{ $content->isHidden() ? 'Oculto' : 'Visible' }}
         </span>
     </p>
@@ -54,7 +54,7 @@
             @csrf
             <p class="text-sm text-ink-700">Si no infringe las normas, vuelve a mostrarlo. Se borrarán sus denuncias.
                 Si sí las infringe, no hagas nada: seguirá oculto.</p>
-            <button class="mt-4 w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3">Volver a mostrar</button>
+            <button class="mt-4 w-full rounded-xl bg-found-600 hover:bg-found-700 text-white font-bold py-3">Volver a mostrar</button>
         </form>
     @endif
 </div>

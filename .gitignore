@@ -26,3 +26,6 @@ Thumbs.db
 # Credenciales locales: nunca subirlas al repositorio (usar .env)
 DB_CONNECTION=*.txt
 *.credentials
+
+.vercel
+.env*

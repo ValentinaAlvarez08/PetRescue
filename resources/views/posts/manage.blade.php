@@ -19,7 +19,7 @@
         </div>
         @if ($post->isHidden())
             {{-- Sprint 4 — HU-20 --}}
-            <p class="mt-4 rounded-xl bg-rose-500/20 border border-rose-300/40 px-4 py-3 text-sm text-rose-100" data-role="hidden-notice">
+            <p class="mt-4 rounded-xl bg-lost-500/20 border border-lost-300/40 px-4 py-3 text-sm text-lost-100" data-role="hidden-notice">
                 🚩 Tu publicación está oculta mientras la revisamos: varias personas la denunciaron como inapropiada.
             </p>
         @else
@@ -45,14 +45,14 @@
 
     <form action="{{ route('posts.destroy', $post->management_token) }}" method="POST"
           onsubmit="return confirm('¿Seguro que quieres eliminar tu publicación? También se borrarán sus comentarios y no se puede deshacer.');"
-          class="mt-6 rounded-3xl border border-rose-200 bg-rose-50 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          class="mt-6 rounded-3xl border border-lost-200 bg-lost-50 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         @csrf
         @method('DELETE')
         <div>
-            <p class="font-extrabold text-rose-800">Eliminar publicación</p>
-            <p class="text-sm text-rose-700">Se borrará junto con sus comentarios. Esta acción no se puede deshacer.</p>
+            <p class="font-extrabold text-lost-800">Eliminar publicación</p>
+            <p class="text-sm text-lost-700">Se borrará junto con sus comentarios. Esta acción no se puede deshacer.</p>
         </div>
-        <button type="submit" class="shrink-0 px-5 py-3 rounded-xl font-bold text-white bg-rose-600 hover:bg-rose-700">Eliminar</button>
+        <button type="submit" class="shrink-0 px-5 py-3 rounded-xl font-bold text-white bg-lost-600 hover:bg-lost-700">Eliminar</button>
     </form>
 </div>
 @endsection

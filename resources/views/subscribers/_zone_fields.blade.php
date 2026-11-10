@@ -1,6 +1,6 @@
 {{-- Sprint 4 — HU-11 (CID 1): nombre de la zona, punto en el mapa y radio de 1 a 20 km. --}}
 <div>
-    <label for="label" class="block text-sm font-bold mb-1">Nombre de la zona <span class="text-rose-500">*</span></label>
+    <label for="label" class="block text-sm font-bold mb-1">Nombre de la zona <span class="text-lost-500">*</span></label>
     <input id="label" type="text" name="label" value="{{ old('label') }}" required maxlength="40" list="zone-labels"
            placeholder="Ej: Casa, Trabajo, Finca" class="w-full rounded-xl border border-ink-200 px-4 py-3">
     <datalist id="zone-labels">
@@ -17,8 +17,8 @@
 </div>
 
 <div>
-    <p class="block text-sm font-bold mb-1">Zona a vigilar <span class="text-rose-500">*</span></p>
-    <x-map-picker :lat="old('latitude')" :lng="old('longitude')" color="#f97316" emoji="🏠" height="h-72" radius-input="radius_km" />
+    <p class="block text-sm font-bold mb-1">Zona a vigilar <span class="text-lost-500">*</span></p>
+    <x-map-picker :lat="old('latitude')" :lng="old('longitude')" color="#6366f1" emoji="🏠" height="h-72" radius-input="radius_km" />
 </div>
 
 <div>

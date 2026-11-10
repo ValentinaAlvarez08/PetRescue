@@ -12,7 +12,7 @@
     'lng' => null,
     'referenceInput' => null, // id del input de referencia a autocompletar
     'radiusInput' => null, // id del input con el radio en km (dibuja el círculo)
-    'color' => '#f97316',
+    'color' => '#6366f1',
     'emoji' => '📍',
     'height' => 'h-80',
 ])
@@ -101,7 +101,7 @@
         opts = opts || {};
         if (!inColombia(lat, lng)) {
             status.textContent = '⚠️ El punto debe estar dentro de Colombia.';
-            status.className = 'text-sm text-rose-600 font-semibold';
+            status.className = 'text-sm text-lost-600 font-semibold';
             return;
         }
         latInput.value = lat.toFixed(7);
@@ -120,7 +120,7 @@
         if (opts.fly) circle ? map.fitBounds(circle.getBounds(), { padding: [20, 20] }) : map.setView([lat, lng], 16);
         hint.classList.add('hidden');
         status.textContent = '✅ Lugar marcado. Puedes arrastrar el pin para ajustarlo.';
-        status.className = 'text-sm text-emerald-700 font-semibold';
+        status.className = 'text-sm text-found-700 font-semibold';
         root.dispatchEvent(new CustomEvent('location:set', { bubbles: true }));
         if (opts.reverse) reverseGeocode(lat, lng);
     }
@@ -181,7 +181,7 @@
                     results.appendChild(li);
                 });
             })
-            .catch(() => { results.innerHTML = '<li class="px-4 py-3 text-rose-600">No se pudo buscar. Marca el punto en el mapa.</li>'; });
+            .catch(() => { results.innerHTML = '<li class="px-4 py-3 text-lost-600">No se pudo buscar. Marca el punto en el mapa.</li>'; });
     }
     $('search-btn').addEventListener('click', doSearch);
     search.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); doSearch(); } });

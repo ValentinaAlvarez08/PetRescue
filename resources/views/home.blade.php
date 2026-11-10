@@ -6,8 +6,8 @@
 @section('content')
 {{-- ============ Bienvenida ============ --}}
 <section class="relative overflow-hidden bg-gradient-to-b from-brand-50 to-ink-50">
-    <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-brand-200/40 blur-3xl"></div>
-    <div class="absolute top-40 -left-24 w-72 h-72 rounded-full bg-emerald-200/40 blur-3xl"></div>
+    <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-brand-200/40 blur-3xl pr-float"></div>
+    <div class="absolute top-40 -left-24 w-72 h-72 rounded-full bg-found-200/40 blur-3xl pr-float pr-float-slow"></div>
 
     <div class="relative max-w-6xl mx-auto px-4 pt-14 pb-16 grid lg:grid-cols-[1.25fr_1fr] gap-10 items-center">
         <div>
@@ -23,13 +23,13 @@
             </p>
             <div class="mt-8 grid sm:grid-cols-2 gap-3 max-w-xl">
                 <a href="{{ route('reports.create', 'perdida') }}"
-                   class="group rounded-2xl bg-rose-500 hover:bg-rose-600 text-white p-5 shadow-soft transition">
+                   class="group rounded-2xl bg-lost-500 hover:bg-lost-600 text-white p-5 shadow-soft transition">
                     <span class="text-2xl">😿</span>
                     <p class="font-black text-lg mt-1">Perdí mi mascota</p>
                     <p class="text-sm text-white/85">Publica la alerta en 3 pasos →</p>
                 </a>
                 <a href="{{ route('reports.create', 'encontrada') }}"
-                   class="group rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white p-5 shadow-soft transition">
+                   class="group rounded-2xl bg-found-600 hover:bg-found-700 text-white p-5 shadow-soft transition">
                     <span class="text-2xl">🤗</span>
                     <p class="font-black text-lg mt-1">Encontré una mascota</p>
                     <p class="text-sm text-white/85">Ayúdala a volver a casa →</p>
@@ -39,8 +39,8 @@
 
         <div class="grid grid-cols-3 lg:grid-cols-1 gap-3">
             @foreach ([
-                ['n' => $stats['active'], 'l' => 'casos activos buscando hogar', 'c' => 'text-rose-600'],
-                ['n' => $stats['reunited'], 'l' => 'mascotas ya volvieron a casa', 'c' => 'text-emerald-600'],
+                ['n' => $stats['active'], 'l' => 'casos activos buscando hogar', 'c' => 'text-lost-600'],
+                ['n' => $stats['reunited'], 'l' => 'mascotas ya volvieron a casa', 'c' => 'text-found-600'],
                 ['n' => $stats['businesses'], 'l' => 'servicios en el directorio', 'c' => 'text-brand-600'],
             ] as $s)
                 <div class="rounded-2xl bg-white/80 backdrop-blur border border-white p-4 lg:p-5 shadow-soft lg:flex lg:items-center lg:gap-4">
@@ -119,7 +119,7 @@
             </div>
             <a href="{{ route('guides.index') }}" class="inline-block mt-4 font-bold text-brand-700 hover:underline">Ver todas las guías →</a>
         </div>
-        <div class="rounded-3xl bg-gradient-to-br from-brand-500 to-rose-500 text-white p-6 sm:p-8 flex flex-col">
+        <div class="rounded-3xl bg-gradient-to-br from-brand-500 to-lost-500 text-white p-6 sm:p-8 flex flex-col">
             <p class="text-3xl">🪪</p>
             <h2 class="text-2xl font-black mt-2">Crea su perfil digital</h2>
             <p class="text-white/85 mt-1 flex-1">Foto, señas y datos de salud en un solo lugar, con un QR para la placa del collar. Si se pierde, el reporte se crea con un clic.</p>
@@ -131,7 +131,7 @@
     <section>
         <div class="flex items-end justify-between gap-4 mb-5">
             <div>
-                <p class="text-sm font-extrabold uppercase tracking-wider text-rose-600">Ayúdalos a volver</p>
+                <p class="text-sm font-extrabold uppercase tracking-wider text-lost-600">Ayúdalos a volver</p>
                 <h2 class="text-2xl sm:text-3xl font-black">Reportes recientes</h2>
             </div>
             <a href="{{ route('reports.index') }}" class="font-bold text-brand-700 hover:underline whitespace-nowrap">Ver todos →</a>

@@ -3,7 +3,7 @@
 @php
     $lost = $type === 'perdida';
     $accent = $lost ? 'rose' : 'emerald';
-    $pinColor = $lost ? '#f43f5e' : '#059669';
+    $pinColor = $lost ? '#c026d3' : '#0891b2';
 
     // Paso donde está el primer error del servidor, para abrir el formulario ahí.
     $stepFields = [
@@ -28,7 +28,7 @@
 <div class="max-w-3xl mx-auto">
     <div class="mb-6">
         <span class="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full
-                     {{ $lost ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700' }}">
+                     {{ $lost ? 'bg-lost-100 text-lost-700' : 'bg-found-100 text-found-700' }}">
             {{ $lost ? 'Mascota perdida' : 'Mascota encontrada' }}
         </span>
         <h1 class="text-3xl sm:text-4xl font-black mt-3 tracking-tight">
@@ -64,7 +64,7 @@
     </ol>
 
     @if ($errors->any())
-        <div class="mb-5 bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl text-sm">
+        <div class="mb-5 bg-lost-50 border border-lost-200 text-lost-800 px-4 py-3 rounded-xl text-sm">
             <p class="font-bold mb-1">Revisa estos datos:</p>
             <ul class="list-disc list-inside space-y-0.5">
                 @foreach ($errors->all() as $error)
@@ -99,19 +99,19 @@
                         </label>
                     @endforeach
                 </div>
-                <p class="field-error hidden text-sm text-rose-600 mt-2" data-for="species">Elige qué animal es.</p>
+                <p class="field-error hidden text-sm text-lost-600 mt-2" data-for="species">Elige qué animal es.</p>
             </div>
 
             <div id="pet-details" class="space-y-6 {{ $val('species') ? '' : 'hidden' }}">
                 <div class="grid sm:grid-cols-2 gap-4">
                     <div>
                         <label for="breed" class="block text-sm font-bold mb-1">
-                            Raza {!! $lost ? '<span class="text-rose-500">*</span>' : '<span class="font-normal text-ink-500">(opcional)</span>' !!}
+                            Raza {!! $lost ? '<span class="text-lost-500">*</span>' : '<span class="font-normal text-ink-500">(opcional)</span>' !!}
                         </label>
                         <select id="breed" name="breed" data-old="{{ $val('breed') }}" @if($lost) required @endif
                                 class="w-full rounded-xl border border-ink-200 bg-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-400">
                         </select>
-                        <p class="field-error hidden text-sm text-rose-600 mt-1" data-for="breed">Elige la raza.</p>
+                        <p class="field-error hidden text-sm text-lost-600 mt-1" data-for="breed">Elige la raza.</p>
                     </div>
                     <div>
                         <label for="pet_name" class="block text-sm font-bold mb-1">
@@ -125,7 +125,7 @@
                 </div>
 
                 <div>
-                    <p class="block text-sm font-bold mb-2">Sexo <span class="text-rose-500">*</span></p>
+                    <p class="block text-sm font-bold mb-2">Sexo <span class="text-lost-500">*</span></p>
                     <div class="inline-flex rounded-xl bg-ink-100 p-1 gap-1">
                         @foreach ($sexes as $key => $label)
                             <label class="cursor-pointer">
@@ -134,11 +134,11 @@
                             </label>
                         @endforeach
                     </div>
-                    <p class="field-error hidden text-sm text-rose-600 mt-1" data-for="sex">Indica el sexo (o "No sé").</p>
+                    <p class="field-error hidden text-sm text-lost-600 mt-1" data-for="sex">Indica el sexo (o "No sé").</p>
                 </div>
 
                 <div id="size-field" class="hidden">
-                    <p class="block text-sm font-bold mb-2">Tamaño <span class="text-rose-500">*</span></p>
+                    <p class="block text-sm font-bold mb-2">Tamaño <span class="text-lost-500">*</span></p>
                     <div class="grid sm:grid-cols-3 gap-2">
                         @foreach ($sizes as $key => $label)
                             <label class="cursor-pointer">
@@ -147,11 +147,11 @@
                             </label>
                         @endforeach
                     </div>
-                    <p class="field-error hidden text-sm text-rose-600 mt-1" data-for="size">Elige el tamaño.</p>
+                    <p class="field-error hidden text-sm text-lost-600 mt-1" data-for="size">Elige el tamaño.</p>
                 </div>
 
                 <div>
-                    <p class="block text-sm font-bold mb-1">Colores principales <span class="text-rose-500">*</span></p>
+                    <p class="block text-sm font-bold mb-1">Colores principales <span class="text-lost-500">*</span></p>
                     <p class="text-xs text-ink-500 mb-2">Elige hasta {{ config('pets.max_colors') }}.</p>
                     <div id="color-chips" class="flex flex-wrap gap-2">
                         @foreach ($colors as $key => $color)
@@ -165,7 +165,7 @@
                             </label>
                         @endforeach
                     </div>
-                    <p class="field-error hidden text-sm text-rose-600 mt-1" data-for="colors">Elige al menos un color.</p>
+                    <p class="field-error hidden text-sm text-lost-600 mt-1" data-for="colors">Elige al menos un color.</p>
                 </div>
             </div>
         </section>
@@ -177,7 +177,7 @@
                 <p class="text-sm text-ink-500 mb-3">Toca el mapa para poner el pin, busca la dirección o usa tu ubicación.</p>
                 <x-map-picker :lat="old('latitude')" :lng="old('longitude')" reference-input="location_reference"
                               :color="$pinColor" :emoji="$lost ? '❓' : '📍'" />
-                <p class="field-error hidden text-sm text-rose-600 mt-1" data-for="latitude">Marca el lugar en el mapa.</p>
+                <p class="field-error hidden text-sm text-lost-600 mt-1" data-for="latitude">Marca el lugar en el mapa.</p>
             </div>
 
             <div class="grid sm:grid-cols-2 gap-4">
@@ -191,12 +191,12 @@
                 </div>
                 <div>
                     <label for="event_date" class="block text-sm font-bold mb-1">
-                        {{ $lost ? '¿Cuándo se perdió?' : '¿Cuándo la encontraste?' }} <span class="text-rose-500">*</span>
+                        {{ $lost ? '¿Cuándo se perdió?' : '¿Cuándo la encontraste?' }} <span class="text-lost-500">*</span>
                     </label>
                     <input id="event_date" type="date" name="event_date" value="{{ old('event_date', now()->toDateString()) }}"
                            min="{{ $minDate }}" max="{{ now()->toDateString() }}" required
                            class="w-full rounded-xl border border-ink-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-400">
-                    <p class="field-error hidden text-sm text-rose-600 mt-1" data-for="event_date">Elige una fecha de los últimos {{ config('pets.max_days_ago') }} días.</p>
+                    <p class="field-error hidden text-sm text-lost-600 mt-1" data-for="event_date">Elige una fecha de los últimos {{ config('pets.max_days_ago') }} días.</p>
                 </div>
             </div>
         </section>
@@ -205,7 +205,7 @@
         <section data-step="3" class="hidden p-5 sm:p-8 space-y-6">
             <div class="grid sm:grid-cols-[200px_1fr] gap-5">
                 <div>
-                    <p class="block text-sm font-bold mb-1">Foto <span class="text-rose-500">*</span></p>
+                    <p class="block text-sm font-bold mb-1">Foto <span class="text-lost-500">*</span></p>
                     <label for="photo" id="photo-drop"
                            class="relative flex flex-col items-center justify-center gap-1 aspect-square rounded-2xl border-2 border-dashed border-ink-200 bg-ink-50 hover:bg-ink-100 cursor-pointer overflow-hidden text-center px-3">
                         @if ($profile ?? null)
@@ -221,15 +221,15 @@
                     @if ($profile ?? null)
                         <p class="text-xs text-ink-500 mt-1">Usaremos la foto del perfil. Si tienes una más reciente, súbela.</p>
                     @endif
-                    <p class="field-error hidden text-sm text-rose-600 mt-1" data-for="photo">Sube una foto (máx. 5 MB).</p>
+                    <p class="field-error hidden text-sm text-lost-600 mt-1" data-for="photo">Sube una foto (máx. 5 MB).</p>
                 </div>
                 <div>
-                    <label for="description" class="block text-sm font-bold mb-1">Señas particulares <span class="text-rose-500">*</span></label>
+                    <label for="description" class="block text-sm font-bold mb-1">Señas particulares <span class="text-lost-500">*</span></label>
                     <textarea id="description" name="description" rows="6" maxlength="500" required
                               placeholder="{{ $lost ? 'Ej: collar rojo con placa, mancha blanca en el pecho, cojea un poco de la pata trasera. Es miedosa, no la persigan.' : 'Ej: tiene collar azul sin placa, está bien de salud, es muy dócil. La tengo en mi casa.' }}"
                               class="w-full rounded-xl border border-ink-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-400">{{ $val('description') }}</textarea>
                     <div class="flex justify-between text-xs text-ink-500 mt-1">
-                        <span class="field-error hidden text-rose-600" data-for="description">Escribe al menos 15 caracteres.</span>
+                        <span class="field-error hidden text-lost-600" data-for="description">Escribe al menos 15 caracteres.</span>
                         <span class="ml-auto"><span id="desc-count">0</span>/500</span>
                     </div>
                 </div>
@@ -237,15 +237,15 @@
 
             <div class="grid sm:grid-cols-2 gap-4">
                 <div>
-                    <label for="contact_phone" class="block text-sm font-bold mb-1">Celular de contacto <span class="text-rose-500">*</span></label>
+                    <label for="contact_phone" class="block text-sm font-bold mb-1">Celular de contacto <span class="text-lost-500">*</span></label>
                     <input id="contact_phone" type="tel" name="contact_phone" value="{{ $val('contact_phone') }}" inputmode="numeric"
                            placeholder="300 123 4567" maxlength="14" required
                            class="w-full rounded-xl border border-ink-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-400">
                     <label class="inline-flex items-center gap-2 mt-2 text-sm">
-                        <input type="checkbox" name="contact_whatsapp" value="1" class="w-4 h-4 accent-emerald-600" @checked($val('contact_whatsapp', true))>
+                        <input type="checkbox" name="contact_whatsapp" value="1" class="w-4 h-4 accent-found-600" @checked($val('contact_whatsapp', true))>
                         Este número tiene WhatsApp
                     </label>
-                    <p class="field-error hidden text-sm text-rose-600 mt-1" data-for="contact_phone">Celular de 10 dígitos que empiece por 3.</p>
+                    <p class="field-error hidden text-sm text-lost-600 mt-1" data-for="contact_phone">Celular de 10 dígitos que empiece por 3.</p>
                 </div>
                 <div>
                     <label for="contact_email" class="block text-sm font-bold mb-1">Correo <span class="font-normal text-ink-500">(opcional)</span></label>
@@ -258,7 +258,7 @@
             <div id="summary" class="rounded-2xl bg-ink-50 border border-ink-100 p-4 text-sm"></div>
 
             {{-- Sprint 4 — HU-05: antes de publicar, reportes del tipo contrario que se parecen --}}
-            <div id="similar-box" class="hidden rounded-2xl border-2 {{ $lost ? 'border-emerald-200 bg-emerald-50' : 'border-rose-200 bg-rose-50' }} p-4">
+            <div id="similar-box" class="hidden rounded-2xl border-2 {{ $lost ? 'border-found-200 bg-found-50' : 'border-lost-200 bg-lost-50' }} p-4">
                 <p class="font-extrabold">{{ $lost ? '👀 ¿Es alguna de estas? Alguien reportó mascotas encontradas que se parecen' : '👀 ¿Es alguna de estas? Hay familias buscando mascotas que se parecen' }}</p>
                 <p class="text-sm text-ink-700 mt-0.5">Ábrelas para comparar. Igual puedes publicar tu reporte.</p>
                 <div id="similar-list" class="grid sm:grid-cols-2 gap-2 mt-3"></div>
@@ -271,7 +271,7 @@
             <button type="button" id="btn-next"
                     class="px-6 py-3 rounded-xl font-extrabold text-white bg-ink-900 hover:bg-ink-700">Continuar →</button>
             <button type="submit" id="btn-submit"
-                    class="hidden px-6 py-3 rounded-xl font-extrabold text-white {{ $lost ? 'bg-rose-500 hover:bg-rose-600' : 'bg-emerald-600 hover:bg-emerald-700' }}">
+                    class="hidden px-6 py-3 rounded-xl font-extrabold text-white {{ $lost ? 'bg-lost-500 hover:bg-lost-600' : 'bg-found-600 hover:bg-found-700' }}">
                 Publicar reporte
             </button>
         </div>
@@ -423,7 +423,7 @@
             const k = +d.dataset.stepDot, num = d.querySelector('[data-dot-num]');
             d.className = 'rounded-xl px-3 py-2 border flex items-center gap-2 ' +
                 (k === n ? 'border-ink-900 bg-white text-ink-900' : k < n ? 'border-ink-100 bg-ink-100 text-ink-700' : 'border-ink-200 bg-white text-ink-500');
-            num.className = 'w-6 h-6 rounded-full grid place-items-center shrink-0 ' + (k < n ? 'bg-emerald-500 text-white' : k === n ? 'bg-ink-900 text-white' : 'bg-ink-100 text-ink-700');
+            num.className = 'w-6 h-6 rounded-full grid place-items-center shrink-0 ' + (k < n ? 'bg-found-500 text-white' : k === n ? 'bg-ink-900 text-white' : 'bg-ink-100 text-ink-700');
             num.textContent = k < n ? '✓' : k;
         });
         document.getElementById('btn-prev').classList.toggle('invisible', n === 1);
