@@ -8,7 +8,7 @@
         <h1 class="text-3xl font-black tracking-tight">Mascotas perdidas y encontradas</h1>
         <p class="text-ink-500 mt-1">Casos activos de la comunidad. Activa tu ubicación para ver los más cercanos.</p>
     </div>
-    <button id="btn-radar" class="rounded-xl bg-ink-900 hover:bg-ink-700 text-white font-bold px-4 py-3 text-sm whitespace-nowrap">🎯 Ver cerca de mí</button>
+    <button id="btn-radar" class="rounded-xl bg-ink-900 hover:bg-ink-700 hover:-translate-y-0.5 shadow-lg text-white font-bold px-4 py-3 text-sm whitespace-nowrap transition">🎯 Ver cerca de mí</button>
 </div>
 
 {{-- Sprint 3 — HU-04: filtros por tipo, especie, color y radio. Van por GET para que la URL se pueda compartir. --}}

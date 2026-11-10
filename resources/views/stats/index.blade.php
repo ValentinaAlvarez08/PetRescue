@@ -24,8 +24,8 @@
             ['n' => $totals['reunited'], 'l' => 'mascotas reunidas con su familia', 'c' => 'text-emerald-700', 'k' => 'reunited'],
             ['n' => $totals['active'], 'l' => 'reportes activos buscando ayuda', 'c' => 'text-rose-600', 'k' => 'active'],
         ] as $s)
-            <div class="rounded-3xl bg-white border border-ink-100 shadow-soft p-6" data-stat="{{ $s['k'] }}">
-                <p class="text-4xl sm:text-5xl font-black {{ $s['c'] }}">{{ number_format($s['n'], 0, ',', '.') }}</p>
+            <div class="tilt rounded-3xl bg-white border border-ink-100 shadow-soft p-6 hover:shadow-xl" data-stat="{{ $s['k'] }}">
+                <p class="text-4xl sm:text-5xl font-black tabular-nums {{ $s['c'] }}" data-count="{{ $s['n'] }}">{{ number_format($s['n'], 0, ',', '.') }}</p>
                 <p class="text-sm font-bold text-ink-500 mt-1">{{ $s['l'] }}</p>
             </div>
         @endforeach
@@ -44,7 +44,7 @@
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($stories as $story)
                     <a href="{{ route('reports.show', $story) }}" data-story
-                       class="group block bg-white rounded-3xl border border-ink-100 shadow-soft overflow-hidden hover:-translate-y-0.5 hover:shadow-lg transition">
+                       class="tilt group relative block bg-white rounded-3xl border border-ink-100 shadow-soft overflow-hidden hover:shadow-2xl">
                         <div class="relative h-48 bg-ink-100">
                             @if ($story->photo_url)
                                 <img src="{{ $story->photo_url }}" alt="Foto de {{ $story->display_name }}" class="w-full h-full object-cover" loading="lazy">
@@ -93,8 +93,8 @@
                         @if ($showValue)
                             <span class="text-xs font-extrabold text-ink-700 mb-1">{{ $month['total'] }}</span>
                         @endif
-                        <div class="w-full max-w-[2.5rem] rounded-t bg-[#ea580c] group-hover:bg-[#c2410c] transition-colors"
-                             style="height: {{ $month['total'] / $monthMax * 88 }}%"></div>
+                        <div class="grow-y w-full max-w-[2.5rem] rounded-t-md bg-gradient-to-t from-[#ea580c] to-[#fb923c] group-hover:from-[#c2410c] group-hover:to-[#f97316]"
+                             style="height: {{ $month['total'] / $monthMax * 88 }}%; transition-delay: {{ $i * 60 }}ms"></div>
                         <span class="pointer-events-none absolute bottom-full mb-1 hidden group-hover:block group-focus:block whitespace-nowrap z-10 rounded-lg bg-ink-900 text-white text-xs font-bold px-2 py-1">
                             {{ ucfirst($month['label']) }} {{ $month['year'] }}: {{ $month['total'] }} {{ $month['total'] === 1 ? 'reporte' : 'reportes' }}
                         </span>
@@ -125,7 +125,7 @@
                             title="{{ $row['label'] }}: {{ $row['total'] }} {{ $row['total'] === 1 ? 'reporte' : 'reportes' }}">
                             <span class="font-bold truncate">{{ $row['emoji'] }} {{ $row['label'] }}</span>
                             <span class="h-5 rounded bg-ink-100 overflow-hidden">
-                                <span class="block h-full rounded bg-[#ea580c]" style="width: {{ $row['total'] / $speciesMax * 100 }}%"></span>
+                                <span class="grow-x block h-full rounded bg-gradient-to-r from-[#ea580c] to-[#fb923c]" style="width: {{ $row['total'] / $speciesMax * 100 }}%"></span>
                             </span>
                             <span class="font-extrabold text-ink-700 text-right">{{ $row['total'] }}</span>
                         </li>
