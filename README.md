@@ -132,8 +132,9 @@ en un hosting sin worker (por ejemplo Vercel) usa `QUEUE_CONNECTION=sync`.
 
 ## Requisitos
 
-- PHP 8.2+, Composer
-- MySQL
+- PHP 8.2+ con las extensiones `pdo_pgsql` y `pgsql` activas (en XAMPP: quitar el `;` de
+  `extension=pdo_pgsql` y `extension=pgsql` en `php.ini`), Composer
+- Base de datos PostgreSQL en [Supabase](https://supabase.com) (o SQLite para trabajar sin conexión)
 
 ## Instalación local
 
@@ -143,7 +144,9 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-Configura `DB_DATABASE`, `DB_USERNAME` y `DB_PASSWORD` en `.env`, luego:
+En `.env` completa `DB_HOST`, `DB_USERNAME` y `DB_PASSWORD` con los datos del **Session pooler** de
+Supabase (Dashboard → botón **Connect** → *Session pooler*). En Vercel se cargan las mismas variables
+en *Settings → Environment Variables*. Luego:
 
 ```bash
 php artisan storage:link
