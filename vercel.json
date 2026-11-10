@@ -45,6 +45,9 @@
     "DB_CONNECTION": "pgsql",
     "DB_PORT": "5432",
     "DB_DATABASE": "postgres",
-    "DB_SSLMODE": "require"
+    "DB_SSLMODE": "require",
+    "PHOTOS_DISK": "supabase",
+    "SUPABASE_BUCKET": "photos",
+    "SUPABASE_S3_REGION": "us-east-1"
   }
 }

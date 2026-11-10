@@ -185,6 +185,24 @@ class ArchitectureTest extends TestCase
         $this->assertNull($photos->url(null));
     }
 
+    public function test_photos_go_to_the_configured_disk_and_supabase_urls_are_public(): void
+    {
+        config([
+            'filesystems.photos_disk' => 'supabase',
+            'filesystems.disks.supabase.url' => 'https://abc.supabase.co/storage/v1/object/public/photos',
+        ]);
+        $this->app->forgetInstance(PhotoStorage::class);
+        Storage::fake('supabase', config('filesystems.disks.supabase'));
+        $photos = app(PhotoStorage::class);
+
+        $path = $photos->store(UploadedFile::fake()->image('luna.jpg'), 'pet-reports');
+
+        Storage::disk('supabase')->assertExists($path);
+        Storage::disk('public')->assertMissing($path);
+        $this->assertSame('https://abc.supabase.co/storage/v1/object/public/photos/'.$path, $photos->url($path));
+        $this->assertSame(asset('images/seed/perro.jpg'), $photos->url('images/seed/perro.jpg'));
+    }
+
     public function test_moderation_notifier_needs_an_email(): void
     {
         Notification::fake();

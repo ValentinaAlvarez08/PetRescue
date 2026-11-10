@@ -125,6 +125,19 @@ Pruebas de la arquitectura: `tests/Feature/ArchitectureTest.php`.
   `AppServiceProvider::configureRateLimiting()`.
 - Las credenciales van solo en `.env` (ignorado por git). Nunca subas archivos con contraseñas.
 
+## Fotos (Supabase Storage)
+
+Las fotos de reportes, perfiles y publicaciones se guardan en el disco que indique `PHOTOS_DISK`:
+`public` (carpeta `storage/app/public`, para trabajar en local) o `supabase` (bucket de Supabase Storage,
+obligatorio en Vercel porque allí no se puede escribir en disco).
+
+1. En Supabase → **Storage** → **New bucket**: nombre `photos`, marcar **Public bucket**.
+2. **Project Settings → Storage → S3 Access Keys → New access key**: copia el *Access key ID* y el *Secret*.
+3. En `.env` (o en las variables de Vercel): `PHOTOS_DISK=supabase`, `SUPABASE_URL=https://<ref>.supabase.co`,
+   `SUPABASE_S3_KEY` y `SUPABASE_S3_SECRET`.
+
+Las fotos de ejemplo (`public/images/seed`) se sirven siempre desde la aplicación.
+
 ## Correos y colas
 
 Los correos se envían en cola. Con `QUEUE_CONNECTION=database` deja corriendo `php artisan queue:work`;
