@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Contracts\Flaggable;
 use App\Http\Requests\StoreFlagRequest;
 use App\Models\Comment;
 use App\Models\PetReport;
 use App\Models\Post;
 use App\Notifications\ContentHiddenNotification;
+use App\Services\Moderation\ModerationNotifier;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Notification;
 
 /**
  * Sprint 4 — HU-20: denunciar reportes, publicaciones y comentarios.
@@ -19,6 +20,10 @@ use Illuminate\Support\Facades\Notification;
  */
 class FlagController extends Controller
 {
+    public function __construct(private readonly ModerationNotifier $moderation)
+    {
+    }
+
     public function report(StoreFlagRequest $request, PetReport $report): RedirectResponse
     {
         abort_if($report->isHidden(), 404);
@@ -45,7 +50,7 @@ class FlagController extends Controller
      * @param  callable(): string  $backUrl    a dónde volver si sigue visible
      * @param  callable(): string  $hiddenUrl  a dónde volver si se acaba de ocultar
      */
-    private function flag(StoreFlagRequest $request, PetReport|Post|Comment $content, callable $backUrl, callable $hiddenUrl): RedirectResponse
+    private function flag(StoreFlagRequest $request, Flaggable $content, callable $backUrl, callable $hiddenUrl): RedirectResponse
     {
         $flag = $content->flags()->firstOrNew([
             'reporter_hash' => hash_hmac('sha256', (string) $request->ip(), (string) config('app.key')),
@@ -63,9 +68,7 @@ class FlagController extends Controller
                 ->with('status', 'Gracias por avisar. Si más personas lo denuncian, se ocultará mientras lo revisamos.');
         }
 
-        if ($moderator = config('community.moderation.email')) {
-            Notification::route('mail', $moderator)->notify(new ContentHiddenNotification($content));
-        }
+        $this->moderation->notify(new ContentHiddenNotification($content));
 
         return redirect()->to($hiddenUrl())
             ->with('status', 'Gracias por avisar. El contenido quedó oculto mientras lo revisamos.');

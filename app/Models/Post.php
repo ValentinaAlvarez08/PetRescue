@@ -2,18 +2,19 @@
 
 namespace App\Models;
 
+use App\Contracts\Flaggable as FlaggableContract;
+use App\Contracts\PhotoStorage;
 use App\Models\Concerns\Flaggable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
  * Sprint 3 — HU-17: publicación en un espacio de la comunidad.
  */
-class Post extends Model
+class Post extends Model implements FlaggableContract
 {
     use Flaggable, HasFactory;
 
@@ -65,13 +66,13 @@ class Post extends Model
     /** Fotos subidas en el disco "public"; las de datos de ejemplo en public/images/. */
     public function getPhotoUrlAttribute(): ?string
     {
-        if (! $this->photo_path) {
-            return null;
-        }
+        return app(PhotoStorage::class)->url($this->photo_path);
+    }
 
-        return Str::startsWith($this->photo_path, 'images/')
-            ? asset($this->photo_path)
-            : Storage::url($this->photo_path);
+    /** Borra la foto subida (las de datos de ejemplo viven en public/images/). */
+    public function deleteUploadedPhoto(): void
+    {
+        app(PhotoStorage::class)->delete($this->photo_path);
     }
 
     /** HU-20 */

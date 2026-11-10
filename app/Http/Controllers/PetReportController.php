@@ -2,24 +2,35 @@
 
 namespace App\Http\Controllers;
 
+use App\Contracts\PhotoStorage;
+use App\Contracts\ReportMatcher;
 use App\Events\PetReportPublished;
 use App\Events\PetReportUpdated;
+use App\Http\Filters\ReportFilters;
 use App\Http\Requests\StorePetReportRequest;
 use App\Http\Requests\UpdatePetReportRequest;
 use App\Models\PetProfile;
 use App\Models\PetReport;
-use Illuminate\Http\JsonResponse;
+use App\Services\Geo\NearbyFinder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
+/**
+ * Páginas de los reportes: listado, publicar, ver y gestionar con el enlace
+ * privado. Los endpoints JSON están en Api\PetReportApiController.
+ */
 class PetReportController extends Controller
 {
-    /** HU-04: radios que se ofrecen en el filtro (km). */
-    private const RADIUS_OPTIONS = [1, 2, 5, 10, 20];
+    private const PHOTO_FOLDER = 'pet-reports';
+
+    public function __construct(
+        private readonly PhotoStorage $photos,
+        private readonly ReportMatcher $matcher,
+        private readonly NearbyFinder $nearby,
+    ) {
+    }
 
     /**
      * Listado público. Si llegan lat/lng, se muestran ordenados por
@@ -31,28 +42,12 @@ class PetReportController extends Controller
      */
     public function index(Request $request): View
     {
-        $filters = $this->reportFilters($request);
-        $lat = is_numeric($request->query('lat')) ? (float) $request->query('lat') : null;
-        $lng = is_numeric($request->query('lng')) ? (float) $request->query('lng') : null;
-        $radius = $filters['radius'];
+        $filters = ReportFilters::fromRequest($request);
+        $query = $filters->apply(PetReport::query()->active());
 
-        $query = PetReport::query()->active();
-
-        if ($filters['type']) {
-            $query->ofType($filters['type']);
-        }
-        if ($filters['species']) {
-            $query->where('species', $filters['species']);
-        }
-        if ($filters['color']) {
-            $query->withColor($filters['color']);
-        }
-
-        if ($lat !== null && $lng !== null) {
-            $reports = PetReport::near($query, (float) $lat, (float) $lng, $radius);
-        } else {
-            $reports = $query->latest()->get();
-        }
+        $reports = $filters->hasLocation()
+            ? $this->nearby->within($query, $filters->lat, $filters->lng, $filters->radius)
+            : $query->latest()->get();
 
         $mapReports = $reports->map(fn (PetReport $report) => [
             'lat' => (float) $report->latitude,
@@ -69,34 +64,16 @@ class PetReportController extends Controller
         return view('pet_reports.index', [
             'reports' => $reports,
             'mapReports' => $mapReports,
-            'lat' => $lat,
-            'lng' => $lng,
-            'radius' => $radius,
-            'type' => $filters['type'],
-            'filters' => $filters,
-            'hasFilters' => $filters['type'] || $filters['species'] || $filters['color'] || $lat !== null,
+            'lat' => $filters->lat,
+            'lng' => $filters->lng,
+            'radius' => $filters->radius,
+            'type' => $filters->type,
+            'filters' => $filters->toArray(),
+            'hasFilters' => $filters->isFiltering(),
             'speciesCatalog' => config('pets.species'),
             'colorsCatalog' => config('pets.colors'),
-            'radiusOptions' => self::RADIUS_OPTIONS,
+            'radiusOptions' => ReportFilters::RADIUS_OPTIONS,
         ]);
-    }
-
-    /**
-     * HU-04: lee los filtros de la URL y descarta los valores que no están
-     * en los catálogos. El radio se limita a 1–20 km.
-     */
-    private function reportFilters(Request $request): array
-    {
-        $pick = fn (string $key, array $allowed) => in_array($request->query($key), $allowed, true) ? $request->query($key) : null;
-
-        $radius = is_numeric($request->query('radius')) ? (float) $request->query('radius') : 5.0;
-
-        return [
-            'type' => $pick('type', ['perdida', 'encontrada']),
-            'species' => $pick('species', array_keys(config('pets.species'))),
-            'color' => $pick('color', array_keys(config('pets.colors'))),
-            'radius' => min(20.0, max(1.0, $radius)),
-        ];
     }
 
     /**
@@ -127,9 +104,10 @@ class PetReportController extends Controller
         $data = $request->reportData();
 
         if ($request->hasFile('photo')) {
-            $data['photo_path'] = $request->file('photo')->store('pet-reports', 'public');
+            $data['photo_path'] = $this->photos->store($request->file('photo'), self::PHOTO_FOLDER);
         } elseif ($profile = $request->profile()) {
-            $data['photo_path'] = $this->copyProfilePhoto($profile);
+            // HU-10: el reporte tiene su propia copia de la foto del perfil.
+            $data['photo_path'] = $this->photos->copy($profile->photo_path, self::PHOTO_FOLDER);
         }
 
         $report = PetReport::create($data);
@@ -157,7 +135,7 @@ class PetReportController extends Controller
             'report' => $report,
             'canManage' => false,
             // HU-05: reportes del tipo contrario que se parecen.
-            'similar' => $report->status === 'activo' ? $report->similarReports() : collect(),
+            'similar' => $this->similarTo($report),
         ]);
     }
 
@@ -167,12 +145,12 @@ class PetReportController extends Controller
      */
     public function manage(string $token): View
     {
-        $report = PetReport::where('management_token', $token)->firstOrFail();
+        $report = $this->reportByToken($token);
 
         return view('pet_reports.show', [
             'report' => $report,
             'canManage' => true,
-            'similar' => $report->status === 'activo' ? $report->similarReports() : collect(),
+            'similar' => $this->similarTo($report),
         ]);
     }
 
@@ -182,7 +160,7 @@ class PetReportController extends Controller
      */
     public function edit(string $token): View|RedirectResponse
     {
-        $report = PetReport::where('management_token', $token)->firstOrFail();
+        $report = $this->reportByToken($token);
 
         if ($report->status === 'cerrado') {
             return $this->closedRedirect($token);
@@ -208,8 +186,8 @@ class PetReportController extends Controller
         $data = $request->reportData();
 
         if ($request->hasFile('photo')) {
-            $report->deleteUploadedPhoto();
-            $data['photo_path'] = $request->file('photo')->store('pet-reports', 'public');
+            $this->photos->delete($report->photo_path);
+            $data['photo_path'] = $this->photos->store($request->file('photo'), self::PHOTO_FOLDER);
         }
 
         $report->update($data);
@@ -225,7 +203,7 @@ class PetReportController extends Controller
      */
     public function updateStatus(Request $request, string $token): RedirectResponse
     {
-        $report = PetReport::where('management_token', $token)->firstOrFail();
+        $report = $this->reportByToken($token);
 
         $request->validate([
             'status' => ['required', 'in:activo,reunido,cerrado'],
@@ -252,90 +230,14 @@ class PetReportController extends Controller
             ->with('status', 'Este reporte está cerrado. Reábrelo para poder editarlo.');
     }
 
-    /**
-     * Sprint 4 — HU-05: mientras se llena el formulario (antes de publicar)
-     * se buscan reportes del tipo contrario que se parezcan.
-     */
-    public function similar(Request $request): JsonResponse
+    private function reportByToken(string $token): PetReport
     {
-        $bounds = config('pets.bounds');
-
-        $data = $request->validate([
-            'type' => ['required', Rule::in(['perdida', 'encontrada'])],
-            'species' => ['required', Rule::in(array_keys(config('pets.species')))],
-            'latitude' => ['required', 'numeric', 'between:'.$bounds['lat_min'].','.$bounds['lat_max']],
-            'longitude' => ['required', 'numeric', 'between:'.$bounds['lng_min'].','.$bounds['lng_max']],
-            'breed' => ['nullable', 'string', 'max:100'],
-            'sex' => ['nullable', 'string', 'max:10'],
-            'size' => ['nullable', 'string', 'max:20'],
-            'colors' => ['nullable', 'array', 'max:'.config('pets.max_colors')],
-            'colors.*' => ['string', 'max:30'],
-            'event_date' => ['nullable', 'date'],
-        ]);
-
-        $draft = new PetReport(collect($data)->except('colors')->all());
-        $draft->color = implode(',', $data['colors'] ?? []);
-        if ($draft->breed === config('pets.unknown_breed')) {
-            $draft->breed = null;
-        }
-
-        $reports = $draft->similarReports()->map(fn (PetReport $report) => [
-            'id' => $report->id,
-            'url' => $report->public_url,
-            'name' => $report->display_name,
-            'species' => $report->species_label,
-            'emoji' => $report->species_emoji,
-            'photo_url' => $report->photo_url,
-            'location' => $report->location_reference,
-            'distance_km' => round($report->distance_km, 1),
-            'score' => $report->match_score,
-            'reasons' => $report->match_reasons,
-            'published' => $report->created_at->locale('es')->diffForHumans(),
-        ]);
-
-        return response()->json(['count' => $reports->count(), 'reports' => $reports]);
+        return PetReport::where('management_token', $token)->firstOrFail();
     }
 
-    /** HU-10: copia la foto del perfil para que el reporte tenga la suya. */
-    private function copyProfilePhoto(PetProfile $profile): string
+    /** HU-05: reportes del tipo contrario que se parecen (solo si sigue activo). */
+    private function similarTo(PetReport $report): Collection
     {
-        if (Str::startsWith($profile->photo_path, 'images/')) {
-            return $profile->photo_path;
-        }
-
-        $copy = 'pet-reports/'.Str::uuid().'.'.pathinfo($profile->photo_path, PATHINFO_EXTENSION);
-        Storage::disk('public')->copy($profile->photo_path, $copy);
-
-        return $copy;
-    }
-
-    /**
-     * HU3: endpoint JSON para el "radar" de mascotas cercanas.
-     * El frontend lo consulta con la ubicación del visitante (sin login)
-     * para avisarle si hay casos activos a su alrededor.
-     */
-    public function nearby(Request $request): JsonResponse
-    {
-        $request->validate([
-            'lat' => ['required', 'numeric', 'between:-90,90'],
-            'lng' => ['required', 'numeric', 'between:-180,180'],
-            'radius' => ['nullable', 'numeric', 'min:0.5', 'max:100'],
-        ]);
-
-        $reports = PetReport::near(
-            PetReport::query()->active(),
-            (float) $request->query('lat'),
-            (float) $request->query('lng'),
-            (float) $request->query('radius', 5)
-        )->map(fn (PetReport $report) => collect($report->toArray())->only([
-            'id', 'type', 'species', 'breed', 'color', 'size', 'pet_name', 'status',
-            'description', 'location_reference', 'photo_path', 'latitude', 'longitude',
-            'created_at', 'distance_km',
-        ])->put('photo_url', $report->photo_url));
-
-        return response()->json([
-            'count' => $reports->count(),
-            'reports' => $reports,
-        ]);
+        return $report->status === 'activo' ? $this->matcher->for($report) : collect();
     }
 }

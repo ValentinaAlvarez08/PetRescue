@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Support\GeoDistance;
+use App\Contracts\DistanceCalculator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Collection;
@@ -55,12 +55,14 @@ class AlertZone extends Model
      */
     public static function covering(float $lat, float $lng): Collection
     {
+        $distance = app(DistanceCalculator::class);
+
         return static::query()
             ->with('subscriber')
             ->where('active', true)
             ->get()
-            ->filter(function (self $zone) use ($lat, $lng) {
-                $zone->distance_km = GeoDistance::kilometers(
+            ->filter(function (self $zone) use ($lat, $lng, $distance) {
+                $zone->distance_km = $distance->kilometers(
                     $lat,
                     $lng,
                     (float) $zone->latitude,

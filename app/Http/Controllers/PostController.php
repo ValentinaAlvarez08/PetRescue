@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Contracts\PhotoStorage;
 use App\Http\Requests\StorePostRequest;
 use App\Models\Post;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 /**
@@ -19,6 +18,12 @@ class PostController extends Controller
 {
     /** Duración de la cookie de "Me sirvió": un año, en minutos. */
     private const HELPFUL_COOKIE_MINUTES = 60 * 24 * 365;
+
+    private const PHOTO_FOLDER = 'community-posts';
+
+    public function __construct(private readonly PhotoStorage $photos)
+    {
+    }
 
     /** HU-17: formulario "Nueva publicación". */
     public function create(string $topic): View
@@ -38,7 +43,7 @@ class PostController extends Controller
         $data['topic'] = $topic;
 
         if ($request->hasFile('photo')) {
-            $data['photo_path'] = $request->file('photo')->store('community-posts', 'public');
+            $data['photo_path'] = $this->photos->store($request->file('photo'), self::PHOTO_FOLDER);
         }
 
         $post = Post::create($data);
@@ -100,9 +105,9 @@ class PostController extends Controller
         $data = $request->postData();
 
         if ($request->hasFile('photo') || $request->boolean('remove_photo')) {
-            $this->deletePhoto($post);
+            $this->photos->delete($post->photo_path);
             $data['photo_path'] = $request->hasFile('photo')
-                ? $request->file('photo')->store('community-posts', 'public')
+                ? $this->photos->store($request->file('photo'), self::PHOTO_FOLDER)
                 : null;
         }
 
@@ -116,7 +121,7 @@ class PostController extends Controller
         $post = Post::where('management_token', $token)->firstOrFail();
         $topic = $post->topic;
 
-        $this->deletePhoto($post);
+        $this->photos->delete($post->photo_path);
         $post->delete(); // los comentarios se eliminan en cascada
 
         return redirect()
@@ -131,13 +136,5 @@ class PostController extends Controller
         abort_unless(array_key_exists($topic, $topics), 404);
 
         return $topics[$topic];
-    }
-
-    /** Borra la foto subida (las de datos de ejemplo viven en public/images/). */
-    private function deletePhoto(Post $post): void
-    {
-        if ($post->photo_path && ! Str::startsWith($post->photo_path, 'images/')) {
-            Storage::disk('public')->delete($post->photo_path);
-        }
     }
 }

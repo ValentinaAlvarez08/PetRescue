@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Contracts\Flaggable as FlaggableContract;
 use App\Models\Concerns\Flaggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * Sprint 3 — HU-18: comentario de una publicación de la comunidad.
  */
-class Comment extends Model
+class Comment extends Model implements FlaggableContract
 {
     use Flaggable, HasFactory;
 
