@@ -38,7 +38,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(DistanceCalculator::class, HaversineDistance::class);
         $this->app->singleton(NearbyFinder::class);
 
-        $this->app->singleton(PhotoStorage::class, fn () => new PublicDiskPhotoStorage('public'));
+        // "public" en local, "supabase" en producción (config/filesystems.php).
+        $this->app->singleton(PhotoStorage::class, fn (Application $app) => new PublicDiskPhotoStorage(
+            $app['config']->get('filesystems.photos_disk', 'public')
+        ));
 
         // Se arma en cada uso (bind, no singleton) para leer siempre la
         // configuración vigente de config('pets.matching').

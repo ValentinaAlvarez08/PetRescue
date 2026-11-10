@@ -60,7 +60,36 @@ return [
             'report' => false,
         ],
 
+        // Supabase Storage (API compatible con S3). El bucket debe ser público
+        // para que las fotos se vean con la URL de "object/public".
+        'supabase' => [
+            'driver' => 's3',
+            'key' => env('SUPABASE_S3_KEY'),
+            'secret' => env('SUPABASE_S3_SECRET'),
+            'region' => env('SUPABASE_S3_REGION', 'us-east-1'),
+            'bucket' => env('SUPABASE_BUCKET', 'photos'),
+            'endpoint' => rtrim((string) env('SUPABASE_URL'), '/').'/storage/v1/s3',
+            'url' => rtrim((string) env('SUPABASE_URL'), '/').'/storage/v1/object/public/'.env('SUPABASE_BUCKET', 'photos'),
+            'use_path_style_endpoint' => true,
+            // Supabase no implementa ACLs de S3: al copiar no se consulta la visibilidad.
+            'retain_visibility' => false,
+            'throw' => true,
+            'report' => true,
+        ],
+
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Disco de las fotos
+    |--------------------------------------------------------------------------
+    |
+    | Disco donde se guardan las fotos de reportes, perfiles y publicaciones:
+    | "public" (storage/app/public, local) o "supabase" (Supabase Storage).
+    |
+    */
+
+    'photos_disk' => env('PHOTOS_DISK', 'public'),
 
     /*
     |--------------------------------------------------------------------------

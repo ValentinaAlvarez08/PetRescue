@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "regions": ["iad1"],
   "functions": {
     "api/index.php": {
       "runtime": "vercel-php@0.9.0"
@@ -26,5 +27,27 @@
       "src": "/(.*)",
       "dest": "/api/index.php"
     }
-  ]
+  ],
+  "env": {
+    "APP_ENV": "production",
+    "APP_DEBUG": "false",
+    "APP_LOCALE": "es",
+    "APP_CONFIG_CACHE": "/tmp/config.php",
+    "APP_EVENTS_CACHE": "/tmp/events.php",
+    "APP_PACKAGES_CACHE": "/tmp/packages.php",
+    "APP_ROUTES_CACHE": "/tmp/routes.php",
+    "APP_SERVICES_CACHE": "/tmp/services.php",
+    "VIEW_COMPILED_PATH": "/tmp",
+    "LOG_CHANNEL": "stderr",
+    "SESSION_DRIVER": "cookie",
+    "CACHE_STORE": "array",
+    "QUEUE_CONNECTION": "sync",
+    "DB_CONNECTION": "pgsql",
+    "DB_PORT": "5432",
+    "DB_DATABASE": "postgres",
+    "DB_SSLMODE": "require",
+    "PHOTOS_DISK": "supabase",
+    "SUPABASE_BUCKET": "photos",
+    "SUPABASE_S3_REGION": "us-east-1"
+  }
 }

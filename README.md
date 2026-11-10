@@ -125,6 +125,19 @@ Pruebas de la arquitectura: `tests/Feature/ArchitectureTest.php`.
   `AppServiceProvider::configureRateLimiting()`.
 - Las credenciales van solo en `.env` (ignorado por git). Nunca subas archivos con contraseñas.
 
+## Fotos (Supabase Storage)
+
+Las fotos de reportes, perfiles y publicaciones se guardan en el disco que indique `PHOTOS_DISK`:
+`public` (carpeta `storage/app/public`, para trabajar en local) o `supabase` (bucket de Supabase Storage,
+obligatorio en Vercel porque allí no se puede escribir en disco).
+
+1. En Supabase → **Storage** → **New bucket**: nombre `photos`, marcar **Public bucket**.
+2. **Project Settings → Storage → S3 Access Keys → New access key**: copia el *Access key ID* y el *Secret*.
+3. En `.env` (o en las variables de Vercel): `PHOTOS_DISK=supabase`, `SUPABASE_URL=https://<ref>.supabase.co`,
+   `SUPABASE_S3_KEY` y `SUPABASE_S3_SECRET`.
+
+Las fotos de ejemplo (`public/images/seed`) se sirven siempre desde la aplicación.
+
 ## Correos y colas
 
 Los correos se envían en cola. Con `QUEUE_CONNECTION=database` deja corriendo `php artisan queue:work`;
@@ -132,8 +145,9 @@ en un hosting sin worker (por ejemplo Vercel) usa `QUEUE_CONNECTION=sync`.
 
 ## Requisitos
 
-- PHP 8.2+, Composer
-- MySQL
+- PHP 8.2+ con las extensiones `pdo_pgsql` y `pgsql` activas (en XAMPP: quitar el `;` de
+  `extension=pdo_pgsql` y `extension=pgsql` en `php.ini`), Composer
+- Base de datos PostgreSQL en [Supabase](https://supabase.com) (o SQLite para trabajar sin conexión)
 
 ## Instalación local
 
@@ -143,7 +157,9 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-Configura `DB_DATABASE`, `DB_USERNAME` y `DB_PASSWORD` en `.env`, luego:
+En `.env` completa `DB_HOST`, `DB_USERNAME` y `DB_PASSWORD` con los datos del **Session pooler** de
+Supabase (Dashboard → botón **Connect** → *Session pooler*). En Vercel se cargan las mismas variables
+en *Settings → Environment Variables*. Luego:
 
 ```bash
 php artisan storage:link

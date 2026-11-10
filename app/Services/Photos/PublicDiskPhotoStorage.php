@@ -9,7 +9,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
- * Guarda las fotos en un disco de Laravel (por defecto "public").
+ * Guarda las fotos en un disco de Laravel: "public" en local o "supabase"
+ * (Supabase Storage) en producción, según config('filesystems.photos_disk').
  * Las de los datos de ejemplo viven en public/images/ y no se tocan.
  */
 class PublicDiskPhotoStorage implements PhotoStorage
