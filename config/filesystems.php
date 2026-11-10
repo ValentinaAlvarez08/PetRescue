@@ -71,6 +71,8 @@ return [
             'endpoint' => rtrim((string) env('SUPABASE_URL'), '/').'/storage/v1/s3',
             'url' => rtrim((string) env('SUPABASE_URL'), '/').'/storage/v1/object/public/'.env('SUPABASE_BUCKET', 'photos'),
             'use_path_style_endpoint' => true,
+            // Supabase no implementa ACLs de S3: al copiar no se consulta la visibilidad.
+            'retain_visibility' => false,
             'throw' => true,
             'report' => true,
         ],
