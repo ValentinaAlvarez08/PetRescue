@@ -2,33 +2,25 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
-
-class StoreSubscriberRequest extends FormRequest
+/**
+ * HU3 / HU-11 (CID 1): alta de avisos desde el formulario público: el
+ * correo de la persona más la primera (o una nueva) zona a vigilar.
+ */
+class StoreSubscriberRequest extends StoreAlertZoneRequest
 {
-    public function authorize(): bool
-    {
-        // Sin login: cualquier visitante puede suscribirse a avisos cercanos.
-        return true;
-    }
-
     public function rules(): array
     {
         return [
             'name' => ['nullable', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:150'],
-            'latitude' => ['required', 'numeric', 'between:-90,90'],
-            'longitude' => ['required', 'numeric', 'between:-180,180'],
-            'radius_km' => ['nullable', 'numeric', 'min:0.5', 'max:100'],
-        ];
+        ] + parent::rules();
     }
 
     public function messages(): array
     {
         return [
             'email.required' => 'Necesitamos tu correo para poder avisarte.',
-            'latitude.required' => 'Selecciona la ubicación que quieres vigilar.',
-            'longitude.required' => 'Selecciona la ubicación que quieres vigilar.',
-        ];
+            'email.email' => 'Revisa tu correo, parece que no es válido.',
+        ] + parent::messages();
     }
 }

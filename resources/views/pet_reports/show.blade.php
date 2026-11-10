@@ -1,52 +1,178 @@
 @extends('layouts.app')
 
-@section('title', 'Detalle del reporte')
+@php
+    $lost = $report->type === 'perdida';
+    $publicUrl = $report->public_url;
+    $waText = rawurlencode(($lost
+        ? "Hola, vi en PetRescue el reporte de {$report->display_name} ({$report->species_label}) y creo que tengo información: "
+        : "Hola, vi en PetRescue el reporte de la mascota que encontraste ({$report->species_label}) y creo que puede ser mía: ").$publicUrl);
+    $statusLabel = ['activo' => 'Activo', 'reunido' => '¡Reunido!', 'cerrado' => 'Cerrado'][$report->status] ?? $report->status;
+@endphp
+
+@section('title', $report->display_name.' — PetRescue')
+
+{{-- Sprint 4 — HU-09 (CID 3): vista previa al compartir (foto, nombre y tipo de reporte).
+     También en la vista de gestión apunta al enlace público, nunca al privado (CID 4). --}}
+@push('head')
+    @php
+        $ogTitle = ($lost ? 'Mascota perdida' : 'Mascota encontrada').": {$report->display_name} ({$report->species_label})";
+        $ogDescription = \Illuminate\Support\Str::limit(trim(($report->location_reference ? "📍 {$report->location_reference}. " : '').$report->description), 190);
+    @endphp
+    <link rel="canonical" href="{{ $publicUrl }}">
+    <meta name="description" content="{{ $ogDescription }}">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="PetRescue">
+    <meta property="og:locale" content="es_CO">
+    <meta property="og:url" content="{{ $publicUrl }}">
+    <meta property="og:title" content="{{ $ogTitle }}">
+    <meta property="og:description" content="{{ $ogDescription }}">
+    @if ($report->photo_url)
+        <meta property="og:image" content="{{ url($report->photo_url) }}">
+        <meta property="og:image:alt" content="Foto de {{ $report->display_name }}">
+    @endif
+    <meta name="twitter:card" content="{{ $report->photo_url ? 'summary_large_image' : 'summary' }}">
+    <meta name="twitter:title" content="{{ $ogTitle }}">
+    <meta name="twitter:description" content="{{ $ogDescription }}">
+    @if ($report->photo_url)
+        <meta name="twitter:image" content="{{ url($report->photo_url) }}">
+    @endif
+    @if ($canManage)
+        <meta name="robots" content="noindex, nofollow">
+    @endif
+@endpush
 
 @section('content')
-    <a href="{{ route('reports.index') }}" class="text-sm text-gray-500">&larr; Volver al listado</a>
+<a href="{{ route('reports.index') }}" class="text-sm font-bold text-ink-500 hover:text-ink-900">← Todos los reportes</a>
 
-    <div class="bg-white border rounded-lg overflow-hidden mt-4">
-        @if ($report->photo_path)
-            <img src="{{ Storage::url($report->photo_path) }}" class="w-full max-h-96 object-cover">
-        @endif
-
-        <div class="p-5">
-            <span class="text-xs font-semibold uppercase {{ $report->type === 'perdida' ? 'text-red-600' : 'text-green-700' }}">
-                {{ $report->type === 'perdida' ? 'Mascota perdida' : 'Mascota encontrada' }}
-                — estado: {{ ucfirst($report->status) }}
-            </span>
-
-            <h1 class="text-xl font-bold mt-1">{{ $report->pet_name ?: 'Mascota sin nombre' }}</h1>
-            <p class="text-gray-700 mt-2">{{ $report->description }}</p>
-
-            @if ($report->location_reference)
-                <p class="text-sm text-gray-500 mt-2">📍 {{ $report->location_reference }}</p>
-            @endif
-
-            <p class="text-sm text-gray-500 mt-1">📞 Contacto: {{ $report->contact_phone }}</p>
+@if ($canManage)
+    <div class="mt-4 rounded-2xl border-2 border-dashed border-brand-300 bg-brand-50 p-5">
+        <p class="font-extrabold text-brand-900">🔐 Este es tu enlace privado de gestión</p>
+        <p class="text-sm text-brand-900/80 mt-1">Guárdalo: es la única forma de actualizar o cerrar este reporte. No lo compartas.
+            Para difundir el caso usa el botón Compartir o el enlace público: <a href="{{ $publicUrl }}" class="font-bold underline">{{ $publicUrl }}</a></p>
+        <div class="mt-3 flex flex-col sm:flex-row gap-2">
+            <input readonly value="{{ url()->current() }}" class="flex-1 rounded-xl border border-brand-200 bg-white px-3 py-2 text-sm" onclick="this.select()">
+            <button type="button" data-copy="{{ url()->current() }}" class="rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold px-4 py-2 text-sm">Copiar enlace privado</button>
         </div>
     </div>
+@endif
 
-    {{-- Gestión sin login: quien tiene el enlace puede actualizar el estado --}}
-    @if ($canManage && $report->status !== 'cerrado')
-        <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p class="text-sm text-blue-800 mb-3">
-                Este es tu enlace privado de gestión. Guárdalo — es la única forma de actualizar este reporte.
-            </p>
-            <form action="{{ route('reports.updateStatus', $report->management_token) }}" method="POST" class="flex gap-2">
-                @csrf
-                @method('PATCH')
-                @if ($report->status !== 'reunido')
-                    <button name="status" value="reunido"
-                            class="bg-green-600 hover:bg-green-700 text-white text-sm px-3 py-2 rounded">
-                        ✅ Marcar como reunido
-                    </button>
-                @endif
-                <button name="status" value="cerrado"
-                        class="bg-gray-500 hover:bg-gray-600 text-white text-sm px-3 py-2 rounded">
-                    Cerrar reporte
-                </button>
-            </form>
+<div class="mt-4 grid lg:grid-cols-[1.2fr_1fr] gap-6">
+    <article class="bg-white rounded-3xl shadow-soft border border-ink-100 overflow-hidden">
+        @if ($report->photo_path)
+            <img src="{{ $report->photo_url }}" alt="Foto de {{ $report->display_name }}" class="w-full max-h-[28rem] object-cover">
+        @else
+            <div class="h-56 grid place-items-center bg-ink-100 text-7xl">{{ $report->species_emoji }}</div>
+        @endif
+
+        <div class="p-6">
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full {{ $lost ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700' }}">
+                    {{ $lost ? 'Perdida' : 'Encontrada' }}
+                </span>
+                <span class="text-xs font-bold px-3 py-1 rounded-full {{ $report->status === 'reunido' ? 'bg-emerald-500 text-white' : 'bg-ink-100 text-ink-700' }}">{{ $statusLabel }}</span>
+            </div>
+            <h1 class="text-3xl font-black mt-3">{{ $report->species_emoji }} {{ $report->display_name }}</h1>
+
+            <dl class="mt-4 grid grid-cols-2 gap-3 text-sm">
+                <div class="rounded-xl bg-ink-50 p-3"><dt class="text-ink-500 text-xs font-bold uppercase">Especie</dt><dd class="font-bold">{{ $report->species_label }}</dd></div>
+                <div class="rounded-xl bg-ink-50 p-3"><dt class="text-ink-500 text-xs font-bold uppercase">Raza</dt><dd class="font-bold">{{ $report->breed ?: 'No especificada' }}</dd></div>
+                <div class="rounded-xl bg-ink-50 p-3"><dt class="text-ink-500 text-xs font-bold uppercase">Color</dt><dd class="font-bold">{{ $report->color_labels ?: '—' }}</dd></div>
+                <div class="rounded-xl bg-ink-50 p-3"><dt class="text-ink-500 text-xs font-bold uppercase">Sexo · tamaño</dt>
+                    <dd class="font-bold">{{ config('pets.sexes.'.$report->sex, '—') }}{{ $report->size ? ' · '.ucfirst($report->size) : '' }}</dd></div>
+                <div class="rounded-xl bg-ink-50 p-3 col-span-2"><dt class="text-ink-500 text-xs font-bold uppercase">{{ $lost ? 'Se perdió' : 'Se encontró' }}</dt>
+                    <dd class="font-bold">{{ optional($report->event_date)->translatedFormat('d \d\e F \d\e Y') ?? $report->created_at->format('d/m/Y') }}{{ $report->location_reference ? ' · '.$report->location_reference : '' }}</dd></div>
+            </dl>
+
+            <p class="mt-4 text-ink-700 leading-relaxed">{{ $report->description }}</p>
         </div>
-    @endif
+    </article>
+
+    <aside class="space-y-4">
+        {{-- HU-06: contacto directo sin cuenta --}}
+        @if ($report->status === 'activo')
+            <div class="bg-white rounded-3xl shadow-soft border border-ink-100 p-6">
+                <h2 class="font-extrabold text-lg">{{ $lost ? '¿La has visto?' : '¿Es tu mascota?' }}</h2>
+                <p class="text-sm text-ink-500 mt-1">Comunícate directamente con quien publicó el reporte.</p>
+                <div class="mt-4 grid gap-2">
+                    @if ($report->contact_whatsapp && $report->whatsapp_number)
+                        <a href="https://wa.me/{{ $report->whatsapp_number }}?text={{ $waText }}" target="_blank" rel="noopener"
+                           class="flex items-center justify-center gap-2 rounded-xl bg-[#25D366] hover:brightness-95 text-white font-extrabold py-3">
+                            💬 Escribir por WhatsApp
+                        </a>
+                    @endif
+                    @if ($report->contact_phone)
+                        <a href="tel:{{ $report->contact_phone }}" class="flex items-center justify-center gap-2 rounded-xl bg-ink-900 hover:bg-ink-700 text-white font-extrabold py-3">
+                            📞 Llamar
+                        </a>
+                    @endif
+                    @if ($report->contact_email)
+                        <a href="mailto:{{ $report->contact_email }}?subject={{ rawurlencode('PetRescue: '.$report->display_name) }}"
+                           class="flex items-center justify-center gap-2 rounded-xl border border-ink-200 hover:bg-ink-50 font-bold py-3">✉️ Enviar correo</a>
+                    @endif
+                </div>
+            </div>
+        @endif
+
+        {{-- HU-09: compartir en redes sociales --}}
+        @include('pet_reports._share')
+
+        <div class="bg-white rounded-3xl shadow-soft border border-ink-100 p-3">
+            <div id="report-map" class="h-64 rounded-2xl"></div>
+            <a class="block text-center text-sm font-bold text-brand-700 hover:underline mt-2"
+               target="_blank" rel="noopener"
+               href="https://www.google.com/maps/search/?api=1&query={{ $report->latitude }},{{ $report->longitude }}">Abrir en Google Maps</a>
+        </div>
+
+        {{-- Gestión sin login --}}
+        @if ($canManage && $report->status !== 'cerrado')
+            <div class="bg-white rounded-3xl shadow-soft border border-ink-100 p-6">
+                <h2 class="font-extrabold">Actualizar el reporte</h2>
+                <form action="{{ route('reports.updateStatus', $report->management_token) }}" method="POST" class="mt-3 grid gap-2">
+                    @csrf
+                    @method('PATCH')
+                    @if ($report->status !== 'reunido')
+                        <button name="status" value="reunido" class="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3">🎉 ¡Ya está en casa! Marcar como reunido</button>
+                    @endif
+                    <button name="status" value="cerrado" class="rounded-xl border border-ink-200 hover:bg-ink-50 font-bold py-3">Cerrar reporte</button>
+                </form>
+            </div>
+        @endif
+    </aside>
+</div>
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+    const lat = {{ (float) $report->latitude }}, lng = {{ (float) $report->longitude }};
+    const map = L.map('report-map', { scrollWheelZoom: false }).setView([lat, lng], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
+    L.marker([lat, lng], { icon: L.divIcon({ className: '', iconSize: [36, 36], iconAnchor: [18, 36],
+        html: '<div class="pin" style="background:{{ $lost ? '#f43f5e' : '#059669' }}"><span>{{ $report->species_emoji }}</span></div>' }) }).addTo(map);
+
+    function copyText(text) {
+        if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
+        // Respaldo para navegadores sin API de portapapeles (o sitio sin https).
+        const tmp = document.createElement('textarea');
+        tmp.value = text;
+        document.body.appendChild(tmp);
+        tmp.select();
+        document.execCommand('copy');
+        tmp.remove();
+        return Promise.resolve();
+    }
+    document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', () => {
+        copyText(b.dataset.copy).then(() => { b.textContent = b.dataset.copiedText || '¡Copiado!'; });
+    }));
+
+    // HU-09 (CID 1): Compartir despliega WhatsApp, Facebook, X y copiar enlace.
+    document.querySelectorAll('[data-share-box]').forEach(box => {
+        const toggle = box.querySelector('[data-share-toggle]'), options = box.querySelector('[data-share-options]');
+        toggle.addEventListener('click', () => {
+            const open = options.classList.toggle('hidden') === false;
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+    });
+})();
+</script>
+@endpush

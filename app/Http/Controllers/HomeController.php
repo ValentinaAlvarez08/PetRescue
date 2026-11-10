@@ -1,0 +1,38 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Business;
+use App\Models\PetReport;
+use App\Models\Post;
+use Illuminate\View\View;
+
+/**
+ * Sprint 2 — HU-15: página principal de la comunidad.
+ */
+class HomeController extends Controller
+{
+    public function index(): View
+    {
+        $countsByCategory = Business::active()
+            ->selectRaw('category, count(*) as total')
+            ->groupBy('category')
+            ->pluck('total', 'category');
+
+        return view('home', [
+            'latestReports' => PetReport::active()->latest()->take(4)->get(),
+            'stats' => [
+                'active' => PetReport::active()->count(),
+                'reunited' => PetReport::where('status', 'reunido')->count(),
+                'businesses' => Business::active()->count(),
+            ],
+            'directory' => config('community.directory'),
+            'countsByCategory' => $countsByCategory,
+            'topics' => config('community.topics'),
+            // Sprint 3 — HU-17: cuántas publicaciones tiene cada tema.
+            'postsByTopic' => Post::selectRaw('topic, count(*) as total')
+                ->groupBy('topic')
+                ->pluck('total', 'topic'),
+        ]);
+    }
+}

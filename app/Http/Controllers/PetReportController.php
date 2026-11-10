@@ -8,25 +8,38 @@ use App\Models\PetReport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class PetReportController extends Controller
 {
+    /** HU-04: radios que se ofrecen en el filtro (km). */
+    private const RADIUS_OPTIONS = [1, 2, 5, 10, 20];
+
     /**
      * Listado público. Si llegan lat/lng, se muestran ordenados por
      * cercanía (HU3). Sin esos parámetros, se listan los más recientes.
+     *
+     * Sprint 3 — HU-04: filtros por tipo, especie, color y radio (1 a 20 km).
+     * Todos viajan en la URL (query string) para poder compartir la búsqueda;
+     * un valor que no exista en config/pets.php simplemente se ignora.
      */
     public function index(Request $request): View
     {
-        $lat = $request->query('lat');
-        $lng = $request->query('lng');
-        $radius = (float) $request->query('radius', 5);
+        $filters = $this->reportFilters($request);
+        $lat = is_numeric($request->query('lat')) ? (float) $request->query('lat') : null;
+        $lng = is_numeric($request->query('lng')) ? (float) $request->query('lng') : null;
+        $radius = $filters['radius'];
 
         $query = PetReport::query()->active();
 
-        if ($request->filled('type')) {
-            $query->ofType($request->query('type'));
+        if ($filters['type']) {
+            $query->ofType($filters['type']);
+        }
+        if ($filters['species']) {
+            $query->where('species', $filters['species']);
+        }
+        if ($filters['color']) {
+            $query->withColor($filters['color']);
         }
 
         if ($lat !== null && $lng !== null) {
@@ -35,12 +48,49 @@ class PetReportController extends Controller
             $reports = $query->latest()->get();
         }
 
+        $mapReports = $reports->map(fn (PetReport $report) => [
+            'lat' => (float) $report->latitude,
+            'lng' => (float) $report->longitude,
+            'type' => $report->type,
+            'status' => $report->status,
+            'pet_name' => $report->display_name,
+            'species' => $report->species_label,
+            'emoji' => $report->species_emoji,
+            'photo_url' => $report->photo_url,
+            'url' => route('reports.show', $report),
+        ])->values();
+
         return view('pet_reports.index', [
             'reports' => $reports,
+            'mapReports' => $mapReports,
             'lat' => $lat,
             'lng' => $lng,
             'radius' => $radius,
+            'type' => $filters['type'],
+            'filters' => $filters,
+            'hasFilters' => $filters['type'] || $filters['species'] || $filters['color'] || $lat !== null,
+            'speciesCatalog' => config('pets.species'),
+            'colorsCatalog' => config('pets.colors'),
+            'radiusOptions' => self::RADIUS_OPTIONS,
         ]);
+    }
+
+    /**
+     * HU-04: lee los filtros de la URL y descarta los valores que no están
+     * en los catálogos. El radio se limita a 1–20 km.
+     */
+    private function reportFilters(Request $request): array
+    {
+        $pick = fn (string $key, array $allowed) => in_array($request->query($key), $allowed, true) ? $request->query($key) : null;
+
+        $radius = is_numeric($request->query('radius')) ? (float) $request->query('radius') : 5.0;
+
+        return [
+            'type' => $pick('type', ['perdida', 'encontrada']),
+            'species' => $pick('species', array_keys(config('pets.species'))),
+            'color' => $pick('color', array_keys(config('pets.colors'))),
+            'radius' => min(20.0, max(1.0, $radius)),
+        ];
     }
 
     /**
@@ -50,12 +100,18 @@ class PetReportController extends Controller
     {
         abort_unless(in_array($type, ['perdida', 'encontrada'], true), 404);
 
-        return view('pet_reports.create', ['type' => $type]);
+        return view('pet_reports.create', [
+            'type' => $type,
+            'species' => config('pets.species'),
+            'colors' => config('pets.colors'),
+            'sizes' => config('pets.sizes'),
+            'sexes' => config('pets.sexes'),
+        ]);
     }
 
     public function store(StorePetReportRequest $request): RedirectResponse
     {
-        $data = $request->validated();
+        $data = $request->reportData();
 
         if ($request->hasFile('photo')) {
             $data['photo_path'] = $request->file('photo')->store('pet-reports', 'public');
@@ -69,22 +125,33 @@ class PetReportController extends Controller
         // El "enlace de gestión" reemplaza el login: es lo único que
         // necesita el usuario para editar o cerrar su propio caso.
         return redirect()
-            ->route('reports.show', $report->management_token)
+            ->route('reports.manage', $report->management_token)
             ->with('status', 'Reporte publicado. Guarda este enlace para darle seguimiento; es el único acceso que tendrás a tu reporte.');
     }
 
     /**
-     * Vista de un reporte. Si coincide el token en la URL con el guardado
-     * en BD, se muestran también las acciones de gestión (marcar reunido,
-     * cerrar caso) — así no se requiere sesión ni cuenta.
+     * Vista pública de un reporte (la que se comparte y aparece en el
+     * listado). No muestra las acciones de gestión.
      */
-    public function show(string $token): View
+    public function show(PetReport $report): View
+    {
+        return view('pet_reports.show', [
+            'report' => $report,
+            'canManage' => false,
+        ]);
+    }
+
+    /**
+     * Vista privada de gestión: solo quien tiene el enlace con el token
+     * (entregado al publicar) puede marcar reunido o cerrar el caso.
+     */
+    public function manage(string $token): View
     {
         $report = PetReport::where('management_token', $token)->firstOrFail();
 
         return view('pet_reports.show', [
             'report' => $report,
-            'canManage' => true, // quien tiene el enlace es, por definición, el dueño del reporte
+            'canManage' => true,
         ]);
     }
 
@@ -120,8 +187,10 @@ class PetReportController extends Controller
             (float) $request->query('lng'),
             (float) $request->query('radius', 5)
         )->map(fn (PetReport $report) => collect($report->toArray())->only([
-            'id', 'type', 'pet_name', 'description', 'location_reference', 'photo_path', 'created_at', 'distance_km',
-        ]));
+            'id', 'type', 'species', 'breed', 'color', 'size', 'pet_name', 'status',
+            'description', 'location_reference', 'photo_path', 'latitude', 'longitude',
+            'created_at', 'distance_km',
+        ])->put('photo_url', $report->photo_url));
 
         return response()->json([
             'count' => $reports->count(),
