@@ -1,0 +1,71 @@
+@startuml LSP_PetRescue
+title LSP (implementado) - Subclases que sustituyen a su clase base
+skinparam classAttributeIconSize 0
+
+abstract class FormRequest <<Laravel>> {
+  + {abstract} rules() : array
+  + validated() : array
+}
+
+class StorePetReportRequest {
+  + authorize() : bool
+  # prepareForValidation() : void
+  + rules() : array
+  + messages() : array
+  + reportData() : array
+  + profile() : PetProfile
+}
+
+class UpdatePetReportRequest {
+  - report : PetReport
+  + managedReport() : PetReport
+  # prepareForValidation() : void
+  + rules() : array
+  + reportData() : array
+}
+
+FormRequest <|-- StorePetReportRequest
+StorePetReportRequest <|-- UpdatePetReportRequest
+
+class PetReportController {
+  + store(request : StorePetReportRequest)
+  + update(request : UpdatePetReportRequest, token)
+}
+PetReportController ..> StorePetReportRequest : usa reportData()
+
+note right of UpdatePetReportRequest
+  Respeta el contrato del padre:
+  - reportData() sigue devolviendo los datos
+    listos para guardar en pet_reports.
+  - Solo relaja precondiciones (la foto pasa a
+    ser opcional, acepta la fecha original).
+  Puede usarse donde se espera la clase base.
+end note
+
+abstract class Notification <<Laravel>> {
+  + {abstract} via(notifiable) : array
+  + toMail(notifiable) : MailMessage
+}
+class NearbyPetReportNotification
+class PossibleMatchNotification
+class AlertSubscriptionConfirmedNotification
+class ContentHiddenNotification
+class BusinessRequestedNotification
+class BusinessRequestStatusNotification
+
+Notification <|-- NearbyPetReportNotification
+Notification <|-- PossibleMatchNotification
+Notification <|-- AlertSubscriptionConfirmedNotification
+Notification <|-- ContentHiddenNotification
+Notification <|-- BusinessRequestedNotification
+Notification <|-- BusinessRequestStatusNotification
+
+class Subscriber {
+  + notify(notification : Notification) : void
+}
+Subscriber ..> Notification : notify()
+note bottom of Subscriber
+  notify() funciona con cualquier
+  subclase de Notification.
+end note
+@enduml

@@ -1,0 +1,72 @@
+@startuml OCP_Propuesto_PetRescue
+title OCP (por implementar) - Criterios de coincidencia extensibles (HU-05 / HU-08)
+skinparam classAttributeIconSize 0
+
+interface MatchCriterion {
+  + weight() : int
+  + evaluate(lost : PetReport, found : PetReport) : CriterionResult
+}
+
+class CriterionResult {
+  + points : float
+  + reason : string
+}
+
+class DistanceCriterion {
+  + weight() : int = 25
+  + evaluate(lost, found) : CriterionResult
+}
+class ColorCriterion {
+  + weight() : int = 30
+  + evaluate(lost, found) : CriterionResult
+}
+class BreedCriterion {
+  + weight() : int = 15
+  + evaluate(lost, found) : CriterionResult
+}
+class SexCriterion {
+  + weight() : int = 10
+  + evaluate(lost, found) : CriterionResult
+}
+class SizeCriterion {
+  + weight() : int = 10
+  + evaluate(lost, found) : CriterionResult
+}
+class DateCriterion {
+  + weight() : int = 10
+  + evaluate(lost, found) : CriterionResult
+  + rejects(lost, found) : bool
+}
+
+class ReportMatcher {
+  - criteria : MatchCriterion[]
+  + __construct(criteria : MatchCriterion[])
+  + for(report : PetReport, limit : int) : Collection
+  - score(report, candidate) : int
+}
+
+MatchCriterion <|.. DistanceCriterion
+MatchCriterion <|.. ColorCriterion
+MatchCriterion <|.. BreedCriterion
+MatchCriterion <|.. SexCriterion
+MatchCriterion <|.. SizeCriterion
+MatchCriterion <|.. DateCriterion
+MatchCriterion ..> CriterionResult : devuelve
+ReportMatcher o--> "1..*" MatchCriterion
+
+note right of ReportMatcher
+  score() solo suma:
+  foreach (criteria as c) { total += c.evaluate(...).points }
+  Ya no hay if/else por cada dato.
+end note
+
+class MarkingsCriterion <<futuro>> {
+  + weight() : int
+  + evaluate(lost, found) : CriterionResult
+}
+MatchCriterion <|.. MarkingsCriterion
+note bottom of MarkingsCriterion
+  Nuevo criterio (ej. señas particulares)
+  sin modificar ReportMatcher.
+end note
+@enduml

@@ -1,0 +1,80 @@
+@startuml DIP_PetRescue
+title DIP (por implementar) - El controlador depende de abstracciones
+skinparam classAttributeIconSize 0
+
+package "Alto nivel (lógica del negocio)" {
+  class PetReportController {
+    - reports : PetReportRepository
+    - photos : PhotoStorage
+    - matcher : MatchFinder
+    + __construct(reports, photos, matcher)
+    + store(request) : RedirectResponse
+    + update(request, token) : RedirectResponse
+    + similar(request) : JsonResponse
+  }
+  class NotifyPossibleMatches {
+    - matcher : MatchFinder
+    + handle(event) : void
+  }
+}
+
+package "Abstracciones (App\\Contracts)" {
+  interface PetReportRepository {
+    + create(data : array) : PetReport
+    + findByToken(token : string) : PetReport
+    + update(report : PetReport, data : array) : void
+    + activeNear(lat, lng, radiusKm) : Collection
+  }
+  interface PhotoStorage {
+    + store(file : UploadedFile) : string
+    + copy(path : string) : string
+    + delete(path : string) : void
+  }
+  interface MatchFinder {
+    + for(report : PetReport, limit : int) : Collection
+  }
+  interface DistanceCalculator {
+    + kilometers(lat1, lng1, lat2, lng2) : float
+  }
+}
+
+package "Bajo nivel (detalles técnicos)" {
+  class EloquentPetReportRepository
+  class PublicDiskPhotoStorage
+  class ReportMatcher
+  class HaversineDistance
+}
+
+PetReportController --> PetReportRepository
+PetReportController --> PhotoStorage
+PetReportController --> MatchFinder
+NotifyPossibleMatches --> MatchFinder
+
+PetReportRepository <|.. EloquentPetReportRepository
+PhotoStorage <|.. PublicDiskPhotoStorage
+MatchFinder <|.. ReportMatcher
+DistanceCalculator <|.. HaversineDistance
+EloquentPetReportRepository --> DistanceCalculator
+ReportMatcher --> PetReportRepository
+
+class AppServiceProvider {
+  + register() : void
+}
+AppServiceProvider ..> EloquentPetReportRepository : bind
+AppServiceProvider ..> PublicDiskPhotoStorage : bind
+AppServiceProvider ..> ReportMatcher : bind
+AppServiceProvider ..> HaversineDistance : bind
+
+note bottom of AppServiceProvider
+  $this->app->bind(PetReportRepository::class, EloquentPetReportRepository::class);
+  $this->app->bind(PhotoStorage::class, PublicDiskPhotoStorage::class);
+  $this->app->bind(MatchFinder::class, ReportMatcher::class);
+  $this->app->bind(DistanceCalculator::class, HaversineDistance::class);
+end note
+note right of PublicDiskPhotoStorage
+  Hoy el controlador llama directo a
+  Storage::disk('public') y PetReport::where().
+  Cambiar a S3 o MySQL sería un cambio aquí,
+  no en el controlador.
+end note
+@enduml

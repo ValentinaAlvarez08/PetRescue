@@ -1,0 +1,83 @@
+@startuml ISP_PetRescue
+title ISP (por implementar) - Interfaces pequeñas para el contenido
+skinparam classAttributeIconSize 0
+
+package "App\\Contracts" {
+  interface Flaggable {
+    + flags() : MorphMany
+    + isHidden() : bool
+    + hideIfFlaggedEnough() : bool
+    + restoreFromFlags() : void
+  }
+  interface Reviewable {
+    + flagLabel() : string
+    + flagUrl() : string
+  }
+  interface Shareable {
+    + publicUrl() : string
+    + shareLinks() : array
+  }
+  interface Geolocated {
+    + latitude() : float
+    + longitude() : float
+  }
+}
+
+abstract class HasFlags <<trait>> {
+  + flags() : MorphMany
+  + isHidden() : bool
+  + hideIfFlaggedEnough() : bool
+  + restoreFromFlags() : void
+}
+
+class PetReport
+class Post
+class Comment
+class PetProfile
+class Business
+class AlertZone
+
+Flaggable <|.. PetReport
+Reviewable <|.. PetReport
+Shareable <|.. PetReport
+Geolocated <|.. PetReport
+
+Flaggable <|.. Post
+Reviewable <|.. Post
+
+Flaggable <|.. Comment
+Reviewable <|.. Comment
+
+Shareable <|.. PetProfile
+Geolocated <|.. Business
+Geolocated <|.. AlertZone
+
+HasFlags <.. PetReport : use
+HasFlags <.. Post : use
+HasFlags <.. Comment : use
+
+class FlagController {
+  - flag(request, content : Flaggable, back, hidden)
+}
+class ContentHiddenNotification {
+  + __construct(content : Reviewable)
+}
+class GeoDistance {
+  + between(a : Geolocated, b : Geolocated) : float
+}
+
+FlagController ..> Flaggable
+ContentHiddenNotification ..> Reviewable
+GeoDistance ..> Geolocated
+
+note bottom of Comment
+  Un comentario no se comparte ni tiene
+  ubicación: no se le obliga a implementar
+  shareLinks() ni latitude().
+end note
+note right of FlagController
+  Hoy recibe PetReport|Post|Comment
+  (tipo unión). Con la interfaz basta
+  con depender de Flaggable.
+end note
+@enduml

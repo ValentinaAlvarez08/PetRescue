@@ -1,0 +1,69 @@
+@startuml OCP_PetRescue
+title OCP (implementado) - Eventos/Listeners y contenido denunciable
+skinparam classAttributeIconSize 0
+
+class PetReportController {
+  + store(request) : RedirectResponse
+  + update(request, token) : RedirectResponse
+}
+
+class PetReportPublished <<event>> {
+  + report : PetReport
+}
+class PetReportUpdated <<event>> {
+  + report : PetReport
+}
+
+interface ShouldQueue <<Laravel>>
+
+class NotifyNearbySubscribers {
+  + handle(event : PetReportPublished) : void
+}
+class NotifyPossibleMatches {
+  + handle(event : PetReportPublished | PetReportUpdated) : void
+}
+
+PetReportController ..> PetReportPublished : dispatch()
+PetReportController ..> PetReportUpdated : dispatch()
+NotifyNearbySubscribers ..> PetReportPublished : escucha
+NotifyPossibleMatches ..> PetReportPublished : escucha
+NotifyPossibleMatches ..> PetReportUpdated : escucha
+ShouldQueue <|.. NotifyNearbySubscribers
+ShouldQueue <|.. NotifyPossibleMatches
+
+note bottom of NotifyPossibleMatches
+  Agregado en el Sprint 4 (HU-08) sin
+  modificar la publicación del reporte:
+  el sistema se EXTIENDE con un listener nuevo.
+end note
+
+abstract class Flaggable <<trait>> {
+  + flags() : MorphMany
+  + isHidden() : bool
+  + hideIfFlaggedEnough() : bool
+  + restoreFromFlags() : void
+  + {abstract} flagLabel() : string
+  + {abstract} flagUrl() : string
+}
+class PetReport {
+  + flagLabel() : string
+  + flagUrl() : string
+}
+class Post {
+  + flagLabel() : string
+  + flagUrl() : string
+}
+class Comment {
+  + flagLabel() : string
+  + flagUrl() : string
+}
+Flaggable <|-- PetReport
+Flaggable <|-- Post
+Flaggable <|-- Comment
+
+note bottom of Flaggable
+  La lógica de denuncias (HU-20) está cerrada;
+  cada contenido nuevo solo implementa
+  flagLabel() y flagUrl().
+end note
+@enduml

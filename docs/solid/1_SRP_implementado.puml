@@ -1,0 +1,88 @@
+@startuml SRP_PetRescue
+title SRP (implementado) - Publicar un reporte de mascota
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+
+package "Datos de la mascota (Modelo)" {
+  class PetReport {
+    - type : string
+    - species : string
+    - color : string
+    - latitude : decimal
+    - longitude : decimal
+    - status : string
+    - management_token : uuid
+    + getDisplayNameAttribute() : string
+    + shareLinks() : array
+    + similarReports(limit : int) : Collection
+    + scopeActive(query) : Builder
+  }
+}
+
+package "Validación" {
+  class StorePetReportRequest {
+    + rules() : array
+    + messages() : array
+    + reportData() : array
+    + profile() : PetProfile
+  }
+}
+
+package "Coordinación HTTP" {
+  class PetReportController {
+    + store(request : StorePetReportRequest) : RedirectResponse
+    + update(request : UpdatePetReportRequest, token : string)
+    + show(report : PetReport) : View
+    + manage(token : string) : View
+  }
+}
+
+package "Eventos" {
+  class PetReportPublished {
+    + report : PetReport
+  }
+}
+
+package "Notificaciones" {
+  class NotifyNearbySubscribers {
+    + handle(event : PetReportPublished) : void
+  }
+  class NearbyPetReportNotification {
+    + via(notifiable) : array
+    + toMail(notifiable) : MailMessage
+  }
+}
+
+package "Cálculos de apoyo" {
+  class GeoDistance {
+    + {static} kilometers(lat1, lng1, lat2, lng2) : float
+  }
+  class ReportMatcher {
+    + {static} for(report : PetReport, limit : int) : Collection
+    - {static} score(report, candidate, config) : bool
+  }
+}
+
+PetReportController ..> StorePetReportRequest : valida con
+PetReportController ..> PetReport : crea / guarda
+PetReportController ..> PetReportPublished : dispatch()
+PetReportPublished --> PetReport
+NotifyNearbySubscribers ..> PetReportPublished : escucha
+NotifyNearbySubscribers ..> NearbyPetReportNotification : envía
+PetReport ..> ReportMatcher : similarReports()
+PetReport ..> GeoDistance : near()
+
+note bottom of PetReport
+  Equivale a "Mascota":
+  solo representa los datos.
+end note
+note bottom of NotifyNearbySubscribers
+  Equivale a "NotificadorMascota":
+  el correo NO está en el modelo
+  ni en el controlador.
+end note
+note left of StorePetReportRequest
+  Una sola razón para cambiar:
+  las reglas del formulario.
+end note
+@enduml
