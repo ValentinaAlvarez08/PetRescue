@@ -21,8 +21,8 @@
     <section class="grid sm:grid-cols-3 gap-3" aria-label="Totales">
         @foreach ([
             ['n' => $totals['reports'], 'l' => 'reportes publicados', 'c' => 'text-ink-900', 'k' => 'reports'],
-            ['n' => $totals['reunited'], 'l' => 'mascotas reunidas con su familia', 'c' => 'text-emerald-700', 'k' => 'reunited'],
-            ['n' => $totals['active'], 'l' => 'reportes activos buscando ayuda', 'c' => 'text-rose-600', 'k' => 'active'],
+            ['n' => $totals['reunited'], 'l' => 'mascotas reunidas con su familia', 'c' => 'text-found-700', 'k' => 'reunited'],
+            ['n' => $totals['active'], 'l' => 'reportes activos buscando ayuda', 'c' => 'text-lost-600', 'k' => 'active'],
         ] as $s)
             <div class="rounded-3xl bg-white border border-ink-100 shadow-soft p-6" data-stat="{{ $s['k'] }}">
                 <p class="text-4xl sm:text-5xl font-black {{ $s['c'] }}">{{ number_format($s['n'], 0, ',', '.') }}</p>
@@ -36,7 +36,7 @@
         <section id="historias">
             <div class="flex items-end justify-between gap-4 mb-5">
                 <div>
-                    <p class="text-sm font-extrabold uppercase tracking-wider text-emerald-700">Historias de éxito</p>
+                    <p class="text-sm font-extrabold uppercase tracking-wider text-found-700">Historias de éxito</p>
                     <h2 class="text-2xl sm:text-3xl font-black">Ya volvieron a casa 🎉</h2>
                     <p class="text-ink-500 mt-1">{{ $reunitedRate }}% de los reportes terminaron en reencuentro.</p>
                 </div>
@@ -51,7 +51,7 @@
                             @else
                                 <div class="w-full h-full grid place-items-center text-6xl">{{ $story->species_emoji }}</div>
                             @endif
-                            <span class="absolute top-3 left-3 text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-600 text-white">¡Reunido!</span>
+                            <span class="absolute top-3 left-3 text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-found-600 text-white">¡Reunido!</span>
                         </div>
                         <div class="p-4">
                             <h3 class="font-extrabold text-lg leading-tight">{{ $story->display_name }}</h3>
@@ -66,13 +66,13 @@
             </div>
         </section>
     @else
-        <section class="rounded-3xl bg-emerald-50 border border-emerald-200 p-8 text-center" data-empty-stories>
+        <section class="rounded-3xl bg-found-50 border border-found-200 p-8 text-center" data-empty-stories>
             <p class="text-4xl">🏡</p>
             <h2 class="text-2xl font-black mt-2">Todavía no hay reencuentros registrados</h2>
             <p class="text-ink-700 mt-2 max-w-xl mx-auto">¡El primero puede ser gracias a ti! Si perdiste o encontraste una mascota, repórtala para que la comunidad te ayude a buscar a su familia.</p>
             <div class="mt-5 flex flex-col sm:flex-row gap-2 justify-center">
-                <a href="{{ route('reports.create', 'perdida') }}" class="rounded-xl font-bold text-white bg-rose-500 hover:bg-rose-600 px-5 py-3">Perdí mi mascota</a>
-                <a href="{{ route('reports.create', 'encontrada') }}" class="rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-5 py-3">Encontré una</a>
+                <a href="{{ route('reports.create', 'perdida') }}" class="rounded-xl font-bold text-white bg-lost-500 hover:bg-lost-600 px-5 py-3">Perdí mi mascota</a>
+                <a href="{{ route('reports.create', 'encontrada') }}" class="rounded-xl font-bold text-white bg-found-600 hover:bg-found-700 px-5 py-3">Encontré una</a>
             </div>
         </section>
     @endif
@@ -93,7 +93,7 @@
                         @if ($showValue)
                             <span class="text-xs font-extrabold text-ink-700 mb-1">{{ $month['total'] }}</span>
                         @endif
-                        <div class="w-full max-w-[2.5rem] rounded-t bg-[#ea580c] group-hover:bg-[#c2410c] transition-colors"
+                        <div class="w-full max-w-[2.5rem] rounded-t bg-gradient-to-t from-brand-600 to-brand-400 group-hover:from-brand-700 group-hover:to-brand-500 transition-colors pr-grow-y"
                              style="height: {{ $month['total'] / $monthMax * 88 }}%"></div>
                         <span class="pointer-events-none absolute bottom-full mb-1 hidden group-hover:block group-focus:block whitespace-nowrap z-10 rounded-lg bg-ink-900 text-white text-xs font-bold px-2 py-1">
                             {{ ucfirst($month['label']) }} {{ $month['year'] }}: {{ $month['total'] }} {{ $month['total'] === 1 ? 'reporte' : 'reportes' }}
@@ -125,7 +125,7 @@
                             title="{{ $row['label'] }}: {{ $row['total'] }} {{ $row['total'] === 1 ? 'reporte' : 'reportes' }}">
                             <span class="font-bold truncate">{{ $row['emoji'] }} {{ $row['label'] }}</span>
                             <span class="h-5 rounded bg-ink-100 overflow-hidden">
-                                <span class="block h-full rounded bg-[#ea580c]" style="width: {{ $row['total'] / $speciesMax * 100 }}%"></span>
+                                <span class="block h-full rounded bg-gradient-to-r from-brand-500 to-found-500 pr-grow-x" style="width: {{ $row['total'] / $speciesMax * 100 }}%"></span>
                             </span>
                             <span class="font-extrabold text-ink-700 text-right">{{ $row['total'] }}</span>
                         </li>

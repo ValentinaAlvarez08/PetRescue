@@ -22,7 +22,7 @@
             {{-- HU-18: "Me sirvió" (una vez por navegador, controlado con cookie en el servidor) --}}
             <div class="mt-6 flex items-center gap-3">
                 @if ($alreadyHelpful)
-                    <span class="inline-flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold px-4 py-2">
+                    <span class="inline-flex items-center gap-2 rounded-xl bg-found-50 border border-found-200 text-found-800 font-bold px-4 py-2">
                         ✅ Te sirvió · <span data-role="helpful-count">{{ $post->helpful_count }}</span>
                     </span>
                 @else
@@ -74,14 +74,14 @@
             <div>
                 <label for="nickname" class="block text-sm font-bold mb-1">Tu apodo</label>
                 <input id="nickname" name="nickname" type="text" maxlength="40" value="{{ old('nickname') }}"
-                       class="{{ $input }} {{ $errors->has('nickname') ? 'border-rose-400 bg-rose-50' : '' }}">
-                @error('nickname') <p class="text-sm text-rose-600 mt-1">{{ $message }}</p> @enderror
+                       class="{{ $input }} {{ $errors->has('nickname') ? 'border-lost-400 bg-lost-50' : '' }}">
+                @error('nickname') <p class="text-sm text-lost-600 mt-1">{{ $message }}</p> @enderror
             </div>
             <div>
                 <label for="comment-body" class="block text-sm font-bold mb-1">Comentario</label>
                 <textarea id="comment-body" name="body" rows="3" maxlength="1000" placeholder="Comparte un consejo o tu experiencia (5 a 1000 caracteres)"
-                          class="{{ $input }} {{ $errors->has('body') ? 'border-rose-400 bg-rose-50' : '' }}">{{ old('body') }}</textarea>
-                @error('body') <p class="text-sm text-rose-600 mt-1">{{ $message }}</p> @enderror
+                          class="{{ $input }} {{ $errors->has('body') ? 'border-lost-400 bg-lost-50' : '' }}">{{ old('body') }}</textarea>
+                @error('body') <p class="text-sm text-lost-600 mt-1">{{ $message }}</p> @enderror
             </div>
             <div class="flex justify-end">
                 <button type="submit" class="px-5 py-3 rounded-xl font-bold text-white bg-brand-500 hover:bg-brand-600">Comentar</button>

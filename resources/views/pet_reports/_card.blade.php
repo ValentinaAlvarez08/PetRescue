@@ -1,13 +1,13 @@
 @php $lost = $report->type === 'perdida'; @endphp
 <a href="{{ route('reports.show', $report) }}"
-   class="group block bg-white rounded-3xl border border-ink-100 shadow-soft overflow-hidden hover:-translate-y-0.5 hover:shadow-lg transition">
+   class="group block bg-white rounded-3xl border border-ink-100 shadow-soft overflow-hidden hover:-translate-y-1 hover:shadow-xl hover:border-brand-200 transition duration-300">
     <div class="relative h-44 bg-ink-100">
         @if ($report->photo_path)
-            <img src="{{ $report->photo_url }}" alt="" class="w-full h-full object-cover" loading="lazy">
+            <img src="{{ $report->photo_url }}" alt="" class="w-full h-full object-cover transition duration-500 ease-out group-hover:scale-105" loading="lazy">
         @else
             <div class="w-full h-full grid place-items-center text-6xl">{{ $report->species_emoji }}</div>
         @endif
-        <span class="absolute top-3 left-3 text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full {{ $lost ? 'bg-rose-500 text-white' : 'bg-emerald-600 text-white' }}">
+        <span class="absolute top-3 left-3 text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full {{ $lost ? 'bg-lost-500 text-white' : 'bg-found-600 text-white' }}">
             {{ $lost ? 'Perdida' : 'Encontrada' }}
         </span>
     </div>

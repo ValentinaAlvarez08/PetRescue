@@ -40,8 +40,8 @@
                 <textarea id="note" name="note" rows="2" maxlength="300" class="w-full rounded-xl border border-ink-200 px-4 py-3"></textarea>
             </div>
             <div class="grid grid-cols-2 gap-2">
-                <button name="decision" value="aprobar" class="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3">✅ Aprobar</button>
-                <button name="decision" value="rechazar" class="rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold py-3">Rechazar</button>
+                <button name="decision" value="aprobar" class="rounded-xl bg-found-600 hover:bg-found-700 text-white font-bold py-3">✅ Aprobar</button>
+                <button name="decision" value="rechazar" class="rounded-xl bg-lost-600 hover:bg-lost-700 text-white font-bold py-3">Rechazar</button>
             </div>
         </form>
     @else

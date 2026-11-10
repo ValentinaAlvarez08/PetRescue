@@ -57,7 +57,7 @@
 
     {{-- Sprint 4 — HU-20: el autor ve por qué su reporte no aparece --}}
     @if ($report->isHidden())
-        <div class="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-5 text-rose-900" data-role="hidden-notice">
+        <div class="mt-4 rounded-2xl border border-lost-200 bg-lost-50 p-5 text-lost-900" data-role="hidden-notice">
             <p class="font-extrabold">🚩 Tu reporte está oculto mientras lo revisamos</p>
             <p class="text-sm mt-1">Varias personas lo denunciaron como inapropiado, así que por ahora no aparece en el listado.
                 Si es un error, lo volveremos a mostrar después de revisarlo.</p>
@@ -75,10 +75,10 @@
 
         <div class="p-6">
             <div class="flex flex-wrap items-center gap-2">
-                <span class="text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full {{ $lost ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700' }}">
+                <span class="text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full {{ $lost ? 'bg-lost-100 text-lost-700' : 'bg-found-100 text-found-700' }}">
                     {{ $lost ? 'Perdida' : 'Encontrada' }}
                 </span>
-                <span class="text-xs font-bold px-3 py-1 rounded-full {{ $report->status === 'reunido' ? 'bg-emerald-500 text-white' : 'bg-ink-100 text-ink-700' }}">{{ $statusLabel }}</span>
+                <span class="text-xs font-bold px-3 py-1 rounded-full {{ $report->status === 'reunido' ? 'bg-found-500 text-white' : 'bg-ink-100 text-ink-700' }}">{{ $statusLabel }}</span>
             </div>
             <h1 class="text-3xl font-black mt-3">{{ $report->species_emoji }} {{ $report->display_name }}</h1>
 
@@ -157,7 +157,7 @@
                     @csrf
                     @method('PATCH')
                     @if ($report->status === 'activo')
-                        <button name="status" value="reunido" class="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3">🎉 ¡Ya está en casa! Marcar como reunido</button>
+                        <button name="status" value="reunido" class="rounded-xl bg-found-600 hover:bg-found-700 text-white font-bold py-3">🎉 ¡Ya está en casa! Marcar como reunido</button>
                     @else
                         <button name="status" value="activo" class="rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-bold py-3">↩️ Reabrir reporte</button>
                     @endif
@@ -191,7 +191,7 @@
     const map = L.map('report-map', { scrollWheelZoom: false }).setView([lat, lng], 15);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
     L.marker([lat, lng], { icon: L.divIcon({ className: '', iconSize: [36, 36], iconAnchor: [18, 36],
-        html: '<div class="pin" style="background:{{ $lost ? '#f43f5e' : '#059669' }}"><span>{{ $report->species_emoji }}</span></div>' }) }).addTo(map);
+        html: '<div class="pin" style="background:{{ $lost ? '#c026d3' : '#0891b2' }}"><span>{{ $report->species_emoji }}</span></div>' }) }).addTo(map);
 
     function copyText(text) {
         if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);

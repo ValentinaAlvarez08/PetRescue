@@ -1,13 +1,13 @@
 {{-- Sprint 4 — HU-10: campos del perfil digital (crear y editar con el enlace privado) --}}
 @php
     $input = 'w-full rounded-xl border border-ink-200 bg-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-400';
-    $err = fn ($field) => $errors->has($field) ? ' border-rose-400 bg-rose-50' : '';
+    $err = fn ($field) => $errors->has($field) ? ' border-lost-400 bg-lost-50' : '';
     $value = fn (string $key, $default = null) => old($key, $profile?->{$key} ?? $default);
     $selectedColors = old('colors', $profile?->color_keys ?? []);
 @endphp
 
 @if ($errors->any())
-    <div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl text-sm">
+    <div class="bg-lost-50 border border-lost-200 text-lost-800 px-4 py-3 rounded-xl text-sm">
         <p class="font-bold mb-1">Revisa estos datos:</p>
         <ul class="list-disc list-inside space-y-0.5">
             @foreach ($errors->all() as $error)
@@ -21,7 +21,7 @@
     <h2 class="text-lg font-extrabold">🐾 Sobre tu mascota</h2>
 
     <div>
-        <p class="block text-sm font-bold mb-2">¿Qué animal es? <span class="text-rose-500">*</span></p>
+        <p class="block text-sm font-bold mb-2">¿Qué animal es? <span class="text-lost-500">*</span></p>
         <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
             @foreach ($species as $key => $sp)
                 <label class="cursor-pointer">
@@ -37,17 +37,17 @@
 
     <div class="grid sm:grid-cols-2 gap-4">
         <div>
-            <label for="name" class="block text-sm font-bold mb-1">Nombre <span class="text-rose-500">*</span></label>
+            <label for="name" class="block text-sm font-bold mb-1">Nombre <span class="text-lost-500">*</span></label>
             <input id="name" name="name" type="text" maxlength="40" value="{{ $value('name') }}" placeholder="Ej: Luna" class="{{ $input }}{{ $err('name') }}">
         </div>
         <div>
-            <label for="breed" class="block text-sm font-bold mb-1">Raza <span class="text-rose-500">*</span></label>
+            <label for="breed" class="block text-sm font-bold mb-1">Raza <span class="text-lost-500">*</span></label>
             <select id="breed" name="breed" data-old="{{ $value('breed') }}" class="{{ $input }}{{ $err('breed') }}">
                 <option value="">Primero elige el animal</option>
             </select>
         </div>
         <div>
-            <p class="block text-sm font-bold mb-2">Sexo <span class="text-rose-500">*</span></p>
+            <p class="block text-sm font-bold mb-2">Sexo <span class="text-lost-500">*</span></p>
             <div class="inline-flex rounded-xl bg-ink-100 p-1 gap-1">
                 @foreach ($sexes as $key => $label)
                     <label class="cursor-pointer">
@@ -65,7 +65,7 @@
     </div>
 
     <div id="size-field" class="hidden">
-        <p class="block text-sm font-bold mb-2">Tamaño <span class="text-rose-500">*</span></p>
+        <p class="block text-sm font-bold mb-2">Tamaño <span class="text-lost-500">*</span></p>
         <div class="grid sm:grid-cols-3 gap-2">
             @foreach ($sizes as $key => $label)
                 <label class="cursor-pointer">
@@ -77,7 +77,7 @@
     </div>
 
     <div>
-        <p class="block text-sm font-bold mb-1">Colores principales <span class="text-rose-500">*</span></p>
+        <p class="block text-sm font-bold mb-1">Colores principales <span class="text-lost-500">*</span></p>
         <p class="text-xs text-ink-500 mb-2">Elige hasta {{ config('pets.max_colors') }}.</p>
         <div class="flex flex-wrap gap-2">
             @foreach ($colors as $key => $color)
@@ -94,7 +94,7 @@
 
     <div class="grid sm:grid-cols-[180px_1fr] gap-5">
         <div>
-            <p class="block text-sm font-bold mb-1">Foto {!! $profile ? '' : '<span class="text-rose-500">*</span>' !!}</p>
+            <p class="block text-sm font-bold mb-1">Foto {!! $profile ? '' : '<span class="text-lost-500">*</span>' !!}</p>
             <label for="photo" class="relative flex flex-col items-center justify-center gap-1 aspect-square rounded-2xl border-2 border-dashed border-ink-200 bg-ink-50 hover:bg-ink-100 cursor-pointer overflow-hidden text-center px-3">
                 <img id="photo-preview" src="{{ $profile?->photo_url }}" class="{{ $profile ? '' : 'hidden' }} absolute inset-0 w-full h-full object-cover" alt="">
                 <span class="text-3xl">📷</span>
@@ -115,7 +115,7 @@
 <section class="space-y-5">
     <h2 class="text-lg font-extrabold">❤️ Salud</h2>
     <div>
-        <p class="block text-sm font-bold mb-2">¿Está esterilizada? <span class="text-rose-500">*</span></p>
+        <p class="block text-sm font-bold mb-2">¿Está esterilizada? <span class="text-lost-500">*</span></p>
         <div class="inline-flex rounded-xl bg-ink-100 p-1 gap-1">
             @foreach ($sterilizedOptions as $key => $label)
                 <label class="cursor-pointer">
@@ -144,7 +144,7 @@
     <p class="text-sm text-ink-500 -mt-3">Lo verá quien abra el perfil o escanee el QR de la placa. No pongas tu dirección exacta.</p>
     <div class="grid sm:grid-cols-2 gap-4">
         <div>
-            <label for="owner_name" class="block text-sm font-bold mb-1">Tu nombre <span class="text-rose-500">*</span></label>
+            <label for="owner_name" class="block text-sm font-bold mb-1">Tu nombre <span class="text-lost-500">*</span></label>
             <input id="owner_name" name="owner_name" type="text" maxlength="80" value="{{ $value('owner_name') }}" class="{{ $input }}{{ $err('owner_name') }}">
         </div>
         <div>
@@ -152,11 +152,11 @@
             <input id="neighborhood" name="neighborhood" type="text" maxlength="150" value="{{ $value('neighborhood') }}" placeholder="Ej: San Ignacio, Pasto" class="{{ $input }}">
         </div>
         <div>
-            <label for="contact_phone" class="block text-sm font-bold mb-1">Celular <span class="text-rose-500">*</span></label>
+            <label for="contact_phone" class="block text-sm font-bold mb-1">Celular <span class="text-lost-500">*</span></label>
             <input id="contact_phone" name="contact_phone" type="tel" inputmode="numeric" maxlength="14" value="{{ $value('contact_phone') }}" placeholder="300 123 4567"
                    class="{{ $input }}{{ $err('contact_phone') }}">
             <label class="inline-flex items-center gap-2 mt-2 text-sm">
-                <input type="checkbox" name="contact_whatsapp" value="1" class="w-4 h-4 accent-emerald-600" @checked($value('contact_whatsapp', true))>
+                <input type="checkbox" name="contact_whatsapp" value="1" class="w-4 h-4 accent-found-600" @checked($value('contact_whatsapp', true))>
                 Este número tiene WhatsApp
             </label>
         </div>

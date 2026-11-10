@@ -29,7 +29,7 @@
     </div>
 
     @if ($errors->any())
-        <div class="mb-5 bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl text-sm">
+        <div class="mb-5 bg-lost-50 border border-lost-200 text-lost-800 px-4 py-3 rounded-xl text-sm">
             <ul class="list-disc list-inside">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -46,7 +46,7 @@
                 <input id="name" type="text" name="name" value="{{ old('name') }}" class="w-full rounded-xl border border-ink-200 px-4 py-3">
             </div>
             <div>
-                <label for="email" class="block text-sm font-bold mb-1">Correo <span class="text-rose-500">*</span></label>
+                <label for="email" class="block text-sm font-bold mb-1">Correo <span class="text-lost-500">*</span></label>
                 <input id="email" type="email" name="email" value="{{ old('email') }}" required class="w-full rounded-xl border border-ink-200 px-4 py-3">
             </div>
         </div>

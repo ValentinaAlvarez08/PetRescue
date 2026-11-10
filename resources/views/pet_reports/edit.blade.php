@@ -29,7 +29,7 @@
 
     <div class="mt-4 mb-6">
         <span class="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full
-                     {{ $lost ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700' }}">
+                     {{ $lost ? 'bg-lost-100 text-lost-700' : 'bg-found-100 text-found-700' }}">
             {{ $lost ? 'Mascota perdida' : 'Mascota encontrada' }} · {{ $report->species_emoji }} {{ $report->species_label }}
         </span>
         <h1 class="text-3xl font-black mt-3 tracking-tight">Editar el reporte</h1>
@@ -38,7 +38,7 @@
     </div>
 
     @if ($errors->any())
-        <div class="mb-5 bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl text-sm">
+        <div class="mb-5 bg-lost-50 border border-lost-200 text-lost-800 px-4 py-3 rounded-xl text-sm">
             <p class="font-bold mb-1">Revisa estos datos:</p>
             <ul class="list-disc list-inside space-y-0.5">
                 @foreach ($errors->all() as $error)
@@ -59,7 +59,7 @@
             <div class="grid sm:grid-cols-2 gap-4">
                 <div>
                     <label for="breed" class="block text-sm font-bold mb-1">
-                        Raza {!! $lost ? '<span class="text-rose-500">*</span>' : '<span class="font-normal text-ink-500">(opcional)</span>' !!}
+                        Raza {!! $lost ? '<span class="text-lost-500">*</span>' : '<span class="font-normal text-ink-500">(opcional)</span>' !!}
                     </label>
                     <select id="breed" name="breed" class="{{ $input }} bg-white">
                         <option value="">Selecciona...</option>
@@ -77,7 +77,7 @@
             </div>
 
             <div>
-                <p class="block text-sm font-bold mb-2">Sexo <span class="text-rose-500">*</span></p>
+                <p class="block text-sm font-bold mb-2">Sexo <span class="text-lost-500">*</span></p>
                 <div class="inline-flex rounded-xl bg-ink-100 p-1 gap-1">
                     @foreach ($sexes as $key => $label)
                         <label class="cursor-pointer">
@@ -90,7 +90,7 @@
 
             @if ($speciesInfo['uses_size'] ?? false)
                 <div>
-                    <p class="block text-sm font-bold mb-2">Tamaño <span class="text-rose-500">*</span></p>
+                    <p class="block text-sm font-bold mb-2">Tamaño <span class="text-lost-500">*</span></p>
                     <div class="grid sm:grid-cols-3 gap-2">
                         @foreach ($sizes as $key => $label)
                             <label class="cursor-pointer">
@@ -103,7 +103,7 @@
             @endif
 
             <div>
-                <p class="block text-sm font-bold mb-1">Colores principales <span class="text-rose-500">*</span></p>
+                <p class="block text-sm font-bold mb-1">Colores principales <span class="text-lost-500">*</span></p>
                 <p class="text-xs text-ink-500 mb-2">Elige hasta {{ config('pets.max_colors') }}.</p>
                 <div id="color-chips" class="flex flex-wrap gap-2">
                     @foreach ($colors as $key => $color)
@@ -124,7 +124,7 @@
         <section class="p-5 sm:p-8 space-y-6">
             <h2 class="text-lg font-extrabold">{{ $lost ? '¿Dónde la vieron por última vez?' : '¿Dónde la encontraste?' }}</h2>
             <x-map-picker :lat="old('latitude', $report->latitude)" :lng="old('longitude', $report->longitude)" reference-input="location_reference"
-                          :color="$lost ? '#f43f5e' : '#059669'" :emoji="$lost ? '❓' : '📍'" />
+                          :color="$lost ? '#c026d3' : '#0891b2'" :emoji="$lost ? '❓' : '📍'" />
             <div class="grid sm:grid-cols-2 gap-4">
                 <div>
                     <label for="location_reference" class="block text-sm font-bold mb-1">Punto de referencia <span class="font-normal text-ink-500">(opcional)</span></label>
@@ -132,7 +132,7 @@
                            value="{{ old('location_reference', $report->location_reference) }}" data-touched="1" class="{{ $input }}">
                 </div>
                 <div>
-                    <label for="event_date" class="block text-sm font-bold mb-1">{{ $lost ? '¿Cuándo se perdió?' : '¿Cuándo la encontraste?' }} <span class="text-rose-500">*</span></label>
+                    <label for="event_date" class="block text-sm font-bold mb-1">{{ $lost ? '¿Cuándo se perdió?' : '¿Cuándo la encontraste?' }} <span class="text-lost-500">*</span></label>
                     <input id="event_date" type="date" name="event_date" value="{{ old('event_date', optional($report->event_date)->toDateString()) }}"
                            min="{{ $minDate->toDateString() }}" max="{{ now()->toDateString() }}" class="{{ $input }}">
                 </div>
@@ -157,7 +157,7 @@
                     <p class="text-xs text-ink-500 mt-1">Opcional. JPG, PNG o WEBP · máx. 5 MB.</p>
                 </div>
                 <div>
-                    <label for="description" class="block text-sm font-bold mb-1">Señas particulares <span class="text-rose-500">*</span></label>
+                    <label for="description" class="block text-sm font-bold mb-1">Señas particulares <span class="text-lost-500">*</span></label>
                     <textarea id="description" name="description" rows="6" maxlength="500" class="{{ $input }}">{{ old('description', $report->description) }}</textarea>
                     <p class="text-xs text-ink-500 mt-1">Entre 15 y 500 caracteres.</p>
                 </div>
@@ -165,11 +165,11 @@
 
             <div class="grid sm:grid-cols-2 gap-4">
                 <div>
-                    <label for="contact_phone" class="block text-sm font-bold mb-1">Celular de contacto <span class="text-rose-500">*</span></label>
+                    <label for="contact_phone" class="block text-sm font-bold mb-1">Celular de contacto <span class="text-lost-500">*</span></label>
                     <input id="contact_phone" type="tel" name="contact_phone" inputmode="numeric" maxlength="14"
                            value="{{ old('contact_phone', $report->contact_phone) }}" class="{{ $input }}">
                     <label class="inline-flex items-center gap-2 mt-2 text-sm">
-                        <input type="checkbox" name="contact_whatsapp" value="1" class="w-4 h-4 accent-emerald-600" @checked(old('contact_whatsapp', $report->contact_whatsapp))>
+                        <input type="checkbox" name="contact_whatsapp" value="1" class="w-4 h-4 accent-found-600" @checked(old('contact_whatsapp', $report->contact_whatsapp))>
                         Este número tiene WhatsApp
                     </label>
                 </div>

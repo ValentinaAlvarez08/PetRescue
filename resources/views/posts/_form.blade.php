@@ -1,11 +1,11 @@
 {{-- Sprint 3 — HU-17: campos compartidos entre "Nueva publicación" y la edición privada --}}
 @php
     $input = 'w-full rounded-xl border border-ink-200 bg-ink-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-300 focus:border-brand-400';
-    $err = fn ($field) => $errors->has($field) ? ' border-rose-400 bg-rose-50' : '';
+    $err = fn ($field) => $errors->has($field) ? ' border-lost-400 bg-lost-50' : '';
 @endphp
 
 @if ($errors->any())
-    <div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl text-sm">
+    <div class="bg-lost-50 border border-lost-200 text-lost-800 px-4 py-3 rounded-xl text-sm">
         <p class="font-bold mb-1">Revisa estos datos:</p>
         <ul class="list-disc list-inside space-y-0.5">
             @foreach ($errors->all() as $error)
@@ -21,7 +21,7 @@
            value="{{ old('nickname', $post->nickname ?? '') }}" placeholder="Ej. Mamá de Luna"
            class="{{ $input }}{{ $err('nickname') }}">
     <p class="text-xs text-ink-500 mt-1">Así te verá la comunidad. No uses tu nombre completo si no quieres.</p>
-    @error('nickname') <p class="text-sm text-rose-600 mt-1">{{ $message }}</p> @enderror
+    @error('nickname') <p class="text-sm text-lost-600 mt-1">{{ $message }}</p> @enderror
 </div>
 
 <div>
@@ -30,7 +30,7 @@
            value="{{ old('title', $post->title ?? '') }}" placeholder="Ej. ¿Cómo ayudo a mi perro rescatado a perder el miedo?"
            class="{{ $input }}{{ $err('title') }}">
     <p class="text-xs text-ink-500 mt-1">Máximo 120 caracteres.</p>
-    @error('title') <p class="text-sm text-rose-600 mt-1">{{ $message }}</p> @enderror
+    @error('title') <p class="text-sm text-lost-600 mt-1">{{ $message }}</p> @enderror
 </div>
 
 <div>
@@ -39,7 +39,7 @@
               placeholder="Describe tu pregunta o experiencia: edad de la mascota, qué has intentado, qué te ha funcionado..."
               class="{{ $input }}{{ $err('body') }}">{{ old('body', $post->body ?? '') }}</textarea>
     <p class="text-xs text-ink-500 mt-1">Entre 20 y 2000 caracteres. <span id="body-count"></span></p>
-    @error('body') <p class="text-sm text-rose-600 mt-1">{{ $message }}</p> @enderror
+    @error('body') <p class="text-sm text-lost-600 mt-1">{{ $message }}</p> @enderror
 </div>
 
 <div>
@@ -55,7 +55,7 @@
     <input id="photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp"
            class="block w-full text-sm file:mr-4 file:rounded-xl file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:font-bold file:text-brand-700 hover:file:bg-brand-100">
     <p class="text-xs text-ink-500 mt-1">JPG, PNG o WEBP de máximo 5 MB.</p>
-    @error('photo') <p class="text-sm text-rose-600 mt-1">{{ $message }}</p> @enderror
+    @error('photo') <p class="text-sm text-lost-600 mt-1">{{ $message }}</p> @enderror
 </div>
 
 @push('scripts')

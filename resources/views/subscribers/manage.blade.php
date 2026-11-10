@@ -27,7 +27,7 @@
     </p>
 
     @if ($errors->any())
-        <div class="mt-5 bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl text-sm">
+        <div class="mt-5 bg-lost-50 border border-lost-200 text-lost-800 px-4 py-3 rounded-xl text-sm">
             <ul class="list-disc list-inside">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -50,7 +50,7 @@
                         <h2 class="font-extrabold text-lg">{{ $zone->label }}</h2>
                         <p class="text-sm text-ink-500">Radio de {{ $zone->radius_label }} km</p>
                     </div>
-                    <span class="text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full {{ $zone->active ? 'bg-emerald-100 text-emerald-700' : 'bg-ink-100 text-ink-500' }}">
+                    <span class="text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full {{ $zone->active ? 'bg-found-100 text-found-700' : 'bg-ink-100 text-ink-500' }}">
                         {{ $zone->active ? '✓ Activa' : '⏸ Pausada' }}
                     </span>
                 </div>
@@ -74,7 +74,7 @@
                             @csrf
                             @method('PATCH')
                             <input type="hidden" name="active" value="{{ $zone->active ? 0 : 1 }}">
-                            <button class="rounded-xl font-bold px-4 py-2 text-sm {{ $zone->active ? 'bg-ink-100 hover:bg-ink-200' : 'bg-emerald-600 hover:bg-emerald-700 text-white' }}">
+                            <button class="rounded-xl font-bold px-4 py-2 text-sm {{ $zone->active ? 'bg-ink-100 hover:bg-ink-200' : 'bg-found-600 hover:bg-found-700 text-white' }}">
                                 {{ $zone->active ? 'Pausar' : 'Activar' }}
                             </button>
                         </form>
@@ -82,7 +82,7 @@
                               onsubmit="return confirm({{ json_encode('¿Eliminar la zona «'.$zone->label.'»?', JSON_UNESCAPED_UNICODE) }})">
                             @csrf
                             @method('DELETE')
-                            <button class="rounded-xl border border-rose-200 text-rose-700 hover:bg-rose-50 font-bold px-4 py-2 text-sm">Eliminar</button>
+                            <button class="rounded-xl border border-lost-200 text-lost-700 hover:bg-lost-50 font-bold px-4 py-2 text-sm">Eliminar</button>
                         </form>
                     </div>
                 </div>
@@ -118,7 +118,7 @@
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
         const group = L.featureGroup().addTo(map);
         zones.forEach(z => {
-            const color = z.active ? '#f97316' : '#78716c';
+            const color = z.active ? '#6366f1' : '#64748b';
             L.circle([z.lat, z.lng], { radius: z.radius * 1000, color: color, weight: 2, fillOpacity: z.active ? 0.12 : 0.05, dashArray: z.active ? null : '6 6' })
                 .bindTooltip(z.label + (z.active ? '' : ' (pausada)'), { permanent: true, direction: 'center', className: 'font-bold' })
                 .addTo(group);

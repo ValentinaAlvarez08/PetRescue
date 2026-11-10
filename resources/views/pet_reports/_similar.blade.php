@@ -6,7 +6,7 @@
 
 <section class="mt-8" id="similares" data-role="similar-reports">
     <div class="mb-4">
-        <p class="text-sm font-extrabold uppercase tracking-wider {{ $lost ? 'text-emerald-600' : 'text-rose-600' }}">
+        <p class="text-sm font-extrabold uppercase tracking-wider {{ $lost ? 'text-found-600' : 'text-lost-600' }}">
             {{ $canManage ? 'Posibles coincidencias con tu reporte' : 'Reportes similares' }}
         </p>
         <h2 class="text-2xl font-black">

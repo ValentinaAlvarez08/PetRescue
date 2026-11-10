@@ -16,11 +16,11 @@
 return [
 
     'topics' => [
-        'perdidas' => ['label' => 'Mascotas perdidas', 'emoji' => '🔎', 'color' => '#f43f5e'],
-        'emergencias' => ['label' => 'Emergencias', 'emoji' => '🚑', 'color' => '#ef4444'],
-        'salud' => ['label' => 'Salud y cuidados', 'emoji' => '❤️', 'color' => '#10b981'],
-        'alimentacion' => ['label' => 'Alimentación', 'emoji' => '🥣', 'color' => '#f97316'],
-        'convivencia' => ['label' => 'Convivencia', 'emoji' => '🏡', 'color' => '#8b5cf6'],
+        'perdidas' => ['label' => 'Mascotas perdidas', 'emoji' => '🔎', 'color' => '#c026d3'],
+        'emergencias' => ['label' => 'Emergencias', 'emoji' => '🚑', 'color' => '#ca8a04'],
+        'salud' => ['label' => 'Salud y cuidados', 'emoji' => '❤️', 'color' => '#65a30d'],
+        'alimentacion' => ['label' => 'Alimentación', 'emoji' => '🥣', 'color' => '#4f46e5'],
+        'convivencia' => ['label' => 'Convivencia', 'emoji' => '🏡', 'color' => '#0ea5e9'],
     ],
 
     'guides' => [

@@ -15,7 +15,7 @@
 @endphp
 
 <details {{ $attributes->merge(['class' => 'group text-sm']) }} @if ($mine) open @endif data-flag="{{ $target }}">
-    <summary class="list-none [&::-webkit-details-marker]:hidden cursor-pointer inline-flex items-center gap-1 font-semibold text-ink-500 hover:text-rose-600">
+    <summary class="list-none [&::-webkit-details-marker]:hidden cursor-pointer inline-flex items-center gap-1 font-semibold text-ink-500 hover:text-lost-600">
         🚩 {{ $label }}
     </summary>
 
@@ -27,17 +27,17 @@
         <div class="space-y-1.5">
             @foreach (config('community.flags.reasons') as $key => $reasonLabel)
                 <label class="flex items-center gap-2">
-                    <input type="radio" name="reason" value="{{ $key }}" class="accent-rose-600" @checked($mine && old('reason') === $key)>
+                    <input type="radio" name="reason" value="{{ $key }}" class="accent-lost-600" @checked($mine && old('reason') === $key)>
                     {{ $reasonLabel }}
                 </label>
             @endforeach
         </div>
 
         <textarea name="details" rows="2" maxlength="300" placeholder="Detalles (obligatorio si eliges «Otro motivo»)"
-                  class="w-full rounded-xl border border-ink-200 bg-ink-50 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-rose-200">{{ $mine ? old('details') : '' }}</textarea>
+                  class="w-full rounded-xl border border-ink-200 bg-ink-50 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-lost-200">{{ $mine ? old('details') : '' }}</textarea>
 
         @if ($mine)
-            <ul class="text-rose-600 space-y-0.5">
+            <ul class="text-lost-600 space-y-0.5">
                 @foreach ($bag->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
@@ -45,6 +45,6 @@
         @endif
 
         <p class="text-xs text-ink-500">Si varias personas lo denuncian, se oculta mientras lo revisamos.</p>
-        <button type="submit" class="w-full rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold py-2">Enviar denuncia</button>
+        <button type="submit" class="w-full rounded-xl bg-lost-600 hover:bg-lost-700 text-white font-bold py-2">Enviar denuncia</button>
     </form>
 </details>
