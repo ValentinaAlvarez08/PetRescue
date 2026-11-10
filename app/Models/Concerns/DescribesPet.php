@@ -2,8 +2,7 @@
 
 namespace App\Models\Concerns;
 
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
+use App\Contracts\PhotoStorage;
 
 /**
  * Datos de la mascota que comparten los reportes (PetReport) y el perfil
@@ -45,19 +44,23 @@ trait DescribesPet
     }
 
     /**
+     * HU-05: llaves de color en minúscula y sin repetir, para comparar reportes.
+     *
+     * @return array<int, string>
+     */
+    public function normalizedColorKeys(): array
+    {
+        return array_values(array_unique(array_map('mb_strtolower', $this->color_keys)));
+    }
+
+    /**
      * URL pública de la foto. Las fotos subidas viven en el disco "public";
      * las de los datos de prueba (DatabaseSeeder) vienen incluidas en el
      * repositorio, en public/images/seed/.
      */
     public function getPhotoUrlAttribute(): ?string
     {
-        if (! $this->photo_path) {
-            return null;
-        }
-
-        return Str::startsWith($this->photo_path, 'images/')
-            ? asset($this->photo_path)
-            : Storage::url($this->photo_path);
+        return app(PhotoStorage::class)->url($this->photo_path);
     }
 
     /** Número en formato internacional para enlaces de WhatsApp (HU-06). */
@@ -74,8 +77,6 @@ trait DescribesPet
     /** Borra la foto subida (las de datos de ejemplo viven en public/images/). */
     public function deleteUploadedPhoto(): void
     {
-        if ($this->photo_path && ! Str::startsWith($this->photo_path, 'images/')) {
-            Storage::disk('public')->delete($this->photo_path);
-        }
+        app(PhotoStorage::class)->delete($this->photo_path);
     }
 }

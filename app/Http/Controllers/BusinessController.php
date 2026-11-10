@@ -6,6 +6,7 @@ use App\Http\Requests\StoreBusinessRequest;
 use App\Models\Business;
 use App\Notifications\BusinessRequestedNotification;
 use App\Notifications\BusinessRequestStatusNotification;
+use App\Services\Moderation\ModerationNotifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
@@ -17,6 +18,10 @@ use Illuminate\View\View;
  */
 class BusinessController extends Controller
 {
+    public function __construct(private readonly ModerationNotifier $moderation)
+    {
+    }
+
     public function index(Request $request): View
     {
         $categories = config('community.directory');
@@ -56,9 +61,7 @@ class BusinessController extends Controller
         Notification::route('mail', $business->requester_email)
             ->notify(new BusinessRequestStatusNotification($business));
 
-        if ($moderator = config('community.moderation.email')) {
-            Notification::route('mail', $moderator)->notify(new BusinessRequestedNotification($business));
-        }
+        $this->moderation->notify(new BusinessRequestedNotification($business));
 
         return redirect()
             ->route('directory.index')

@@ -113,6 +113,21 @@ return [
         'max_days_apart' => 60,
         'min_score' => 50,
         'limit' => 4,
+
+        // Peso de cada criterio en el puntaje (suman 100). Cada criterio
+        // devuelve una fracción de 0 a 1 de su peso; un dato que alguno de
+        // los dos reportes no sabe suma la mitad. Las razones se muestran en
+        // este mismo orden. Para agregar un criterio: crea una clase que
+        // implemente App\Contracts\MatchCriterion, regístrala en
+        // AppServiceProvider y dale un peso aquí.
+        'weights' => [
+            'distance' => 25,
+            'colors' => 30,
+            'breed' => 15,
+            'sex' => 10,
+            'size' => 10,
+            'dates' => 10,
+        ],
     ],
 
     // Sprint 4 — HU-10: perfil digital de la mascota.

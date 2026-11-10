@@ -2,10 +2,11 @@
 
 namespace App\Models;
 
+use App\Contracts\Flaggable as FlaggableContract;
+use App\Contracts\ReportMatcher;
 use App\Models\Concerns\DescribesPet;
 use App\Models\Concerns\Flaggable;
-use App\Support\GeoDistance;
-use App\Support\ReportMatcher;
+use App\Services\Geo\NearbyFinder;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
-class PetReport extends Model
+class PetReport extends Model implements FlaggableContract
 {
     use DescribesPet, Flaggable, HasFactory;
 
@@ -139,7 +140,7 @@ class PetReport extends Model
      */
     public function similarReports(?int $limit = null): Collection
     {
-        return ReportMatcher::for($this, $limit);
+        return app(ReportMatcher::class)->for($this, $limit);
     }
 
     /** HU-20 */
@@ -174,25 +175,12 @@ class PetReport extends Model
 
     /**
      * HU3: reportes de $query que caen dentro de $radiusKm de una coordenada,
-     * ordenados por cercanía. El cálculo se hace en PHP (no en SQL) para que
-     * funcione igual en SQLite (desarrollo) y en MySQL (producción).
+     * ordenados por cercanía (cada uno trae distance_km).
      *
      * @return Collection<int, self>
      */
     public static function near(Builder $query, float $lat, float $lng, float $radiusKm = 5): Collection
     {
-        return $query->get()
-            ->filter(function (self $report) use ($lat, $lng, $radiusKm) {
-                $report->distance_km = GeoDistance::kilometers(
-                    $lat,
-                    $lng,
-                    (float) $report->latitude,
-                    (float) $report->longitude
-                );
-
-                return $report->distance_km <= $radiusKm;
-            })
-            ->sortBy('distance_km')
-            ->values();
+        return app(NearbyFinder::class)->within($query, $lat, $lng, $radiusKm);
     }
 }

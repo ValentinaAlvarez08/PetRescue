@@ -86,6 +86,50 @@ Tablas nuevas: `pet_profiles`, `report_matches` y `content_flags` (migraciones `
 
 Pruebas: `php artisan test` (incluye `tests/Feature/Sprint4Part2Test.php`).
 
+## Arquitectura y principios SOLID
+
+El código separa **qué se necesita** (interfaces en `app/Contracts`) de **cómo se hace** (servicios en
+`app/Services`). `AppServiceProvider::register()` decide qué implementación usar, así que cambiar una
+(por ejemplo guardar fotos en S3 u otro algoritmo de coincidencias) solo toca ese archivo.
+
+| Contrato (`app/Contracts`) | Implementación | Quién lo usa |
+|---|---|---|
+| `ReportMatcher` | `Services/Matching/WeightedReportMatcher` | `PetReportController`, `Api\PetReportApiController`, `NotifyPossibleMatches`, `PetReport::similarReports()` |
+| `MatchCriterion` | `Services/Matching/Criteria/*` (distancia, colores, raza, sexo, tamaño, fechas) | `WeightedReportMatcher` |
+| `DistanceCalculator` | `Services/Geo/HaversineDistance` | `NearbyFinder`, `AlertZone::covering()` |
+| `PhotoStorage` | `Services/Photos/PublicDiskPhotoStorage` | controladores de reportes, perfiles y publicaciones |
+| `Flaggable` | `PetReport`, `Post`, `Comment` (con el trait `Models/Concerns/Flaggable`) | `FlagController`, `ModerationController`, `ContentHiddenNotification` |
+
+- **S — Responsabilidad única**: validación en *Form Requests* (`SimilarReportsRequest`, `NearbyReportsRequest`…),
+  filtros del listado en `Http/Filters/ReportFilters`, búsqueda por cercanía en `Services/Geo/NearbyFinder`,
+  avisos a moderación en `Services/Moderation/ModerationNotifier`, efectos secundarios en eventos y listeners.
+  La API JSON está en su propio controlador (`Api\PetReportApiController`).
+- **O — Abierto/cerrado**: el puntaje de coincidencias es la suma de criterios con pesos en
+  `config('pets.matching.weights')`. Para agregar un criterio se crea una clase que implemente `MatchCriterion`
+  y se registra en `AppServiceProvider`, sin modificar el algoritmo. Para hacer denunciable un modelo nuevo basta
+  con implementar `Flaggable` y agregarlo al morph map.
+- **L — Sustitución de Liskov**: cualquier `Flaggable` se denuncia, oculta y restaura igual; cualquier
+  `ReportMatcher` o `PhotoStorage` puede reemplazar al actual (las pruebas lo hacen con implementaciones falsas).
+- **I — Segregación de interfaces**: contratos pequeños, de uno a seis métodos, cada uno con un solo propósito.
+- **D — Inversión de dependencias**: controladores, listeners y servicios reciben interfaces por el constructor.
+
+`NearbyFinder` descarta primero en SQL lo que está fuera del cuadrado que rodea el radio y después calcula la
+distancia exacta, así no se cargan todos los reportes en memoria.
+
+Pruebas de la arquitectura: `tests/Feature/ArchitectureTest.php`.
+
+## Seguridad
+
+- **Límite de envíos por IP** (no hay login): publicar reportes, perfiles, publicaciones, negocios y suscripciones
+  10/min; comentarios y "Me sirvió" 30/min; denuncias 10/min; API JSON 60/min. Se ajustan en
+  `AppServiceProvider::configureRateLimiting()`.
+- Las credenciales van solo en `.env` (ignorado por git). Nunca subas archivos con contraseñas.
+
+## Correos y colas
+
+Los correos se envían en cola. Con `QUEUE_CONNECTION=database` deja corriendo `php artisan queue:work`;
+en un hosting sin worker (por ejemplo Vercel) usa `QUEUE_CONNECTION=sync`.
+
 ## Requisitos
 
 - PHP 8.2+, Composer
