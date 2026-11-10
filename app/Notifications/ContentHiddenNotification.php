@@ -2,9 +2,7 @@
 
 namespace App\Notifications;
 
-use App\Models\Comment;
-use App\Models\PetReport;
-use App\Models\Post;
+use App\Contracts\Flaggable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -19,7 +17,7 @@ class ContentHiddenNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(public readonly PetReport|Post|Comment $content)
+    public function __construct(public readonly Flaggable $content)
     {
     }
 
@@ -49,7 +47,7 @@ class ContentHiddenNotification extends Notification implements ShouldQueue
             ->line('Si no infringe las normas, desde ese enlace puedes volver a mostrarlo.');
     }
 
-    public static function reviewUrl(PetReport|Post|Comment $content): string
+    public static function reviewUrl(Flaggable $content): string
     {
         return URL::temporarySignedRoute(
             'moderation.flagged.show',

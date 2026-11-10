@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Contracts\PhotoStorage;
 use App\Http\Requests\StorePetProfileRequest;
 use App\Models\PetProfile;
 use Illuminate\Http\RedirectResponse;
@@ -14,6 +15,12 @@ use Illuminate\View\View;
  */
 class PetProfileController extends Controller
 {
+    private const PHOTO_FOLDER = 'pet-profiles';
+
+    public function __construct(private readonly PhotoStorage $photos)
+    {
+    }
+
     public function create(): View
     {
         return view('profiles.create', $this->formData() + ['profile' => null]);
@@ -22,7 +29,7 @@ class PetProfileController extends Controller
     public function store(StorePetProfileRequest $request): RedirectResponse
     {
         $data = $request->profileData();
-        $data['photo_path'] = $request->file('photo')->store('pet-profiles', 'public');
+        $data['photo_path'] = $this->photos->store($request->file('photo'), self::PHOTO_FOLDER);
 
         $profile = PetProfile::create($data);
 
@@ -56,8 +63,8 @@ class PetProfileController extends Controller
         $data = $request->profileData();
 
         if ($request->hasFile('photo')) {
-            $profile->deleteUploadedPhoto();
-            $data['photo_path'] = $request->file('photo')->store('pet-profiles', 'public');
+            $this->photos->delete($profile->photo_path);
+            $data['photo_path'] = $this->photos->store($request->file('photo'), self::PHOTO_FOLDER);
         }
 
         $profile->update($data);
@@ -71,7 +78,7 @@ class PetProfileController extends Controller
         $name = $profile->name;
 
         // Los reportes creados desde el perfil se conservan (pet_profile_id queda en null).
-        $profile->deleteUploadedPhoto();
+        $this->photos->delete($profile->photo_path);
         $profile->delete();
 
         return redirect()->route('profiles.create')->with('status', "Eliminamos el perfil de {$name}.");

@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 /**
  * Sprint 4 — HU-20: contenido que la comunidad puede denunciar
  * (reportes, publicaciones y comentarios). Necesita la columna hidden_at.
+ *
+ * Es la implementación por defecto de App\Contracts\Flaggable: el modelo
+ * declara `implements Flaggable` y usa este trait.
  */
 trait Flaggable
 {

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Contracts\Flaggable;
 use App\Models\Business;
 use App\Notifications\BusinessRequestStatusNotification;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -79,10 +79,11 @@ class ModerationController extends Controller
         return redirect()->to($request->fullUrl())->with('status', 'Listo: el contenido vuelve a estar visible y se borraron sus denuncias.');
     }
 
-    private function flaggedContent(string $type, int $id): Model
+    /** Solo se aceptan los tipos del morph map que implementan Flaggable. */
+    private function flaggedContent(string $type, int $id): Flaggable
     {
         $class = Relation::getMorphedModel($type);
-        abort_unless($class, 404);
+        abort_unless($class && is_subclass_of($class, Flaggable::class), 404);
 
         return $class::findOrFail($id);
     }

@@ -2,9 +2,9 @@
 
 namespace App\Listeners;
 
+use App\Contracts\ReportMatcher;
 use App\Events\PetReportPublished;
 use App\Events\PetReportUpdated;
-use App\Models\PetReport;
 use App\Models\ReportMatch;
 use App\Notifications\PossibleMatchNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -21,6 +21,10 @@ use Illuminate\Support\Facades\Notification;
  */
 class NotifyPossibleMatches implements ShouldQueue
 {
+    public function __construct(private readonly ReportMatcher $matcher)
+    {
+    }
+
     public function handle(PetReportPublished|PetReportUpdated $event): void
     {
         $report = $event->report->fresh();
@@ -29,7 +33,7 @@ class NotifyPossibleMatches implements ShouldQueue
             return;
         }
 
-        foreach ($report->similarReports() as $match) {
+        foreach ($this->matcher->for($report) as $match) {
             [$lost, $found] = $report->type === 'perdida' ? [$report, $match] : [$match, $report];
 
             $pair = ReportMatch::firstOrCreate(
