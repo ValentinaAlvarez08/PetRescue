@@ -1,8 +1,79 @@
-# PetRescue
+# 🐾 PetRescue
 
-Plataforma para reportar y reencontrar mascotas perdidas, sin necesidad de registro, con notificaciones por cercanía.
+**Plataforma para reportar y reencontrar mascotas perdidas, sin necesidad de registro, con notificaciones por cercanía.**
 
-## Sprint 1 — HU1, HU2, HU3
+[![Demo](https://img.shields.io/badge/Demo-petrescue--gold.vercel.app-000000?style=flat&logo=vercel&logoColor=white)](https://petrescue-gold.vercel.app)
+![Laravel](https://img.shields.io/badge/Laravel_12-FF2D20?style=flat&logo=laravel&logoColor=white)
+![PHP](https://img.shields.io/badge/PHP_8.2-777BB4?style=flat&logo=php&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat&logo=postgresql&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=flat&logo=tailwindcss&logoColor=white)
+
+👉 **Pruébala en vivo:** https://petrescue-gold.vercel.app
+
+<!-- Capturas: sube las imágenes a docs/screenshots/ y reemplaza las rutas de abajo -->
+<!--
+| Inicio | Reportar mascota | Mapa de reportes |
+|---|---|---|
+| ![Inicio](docs/screenshots/inicio.png) | ![Reportar](docs/screenshots/reportar.png) | ![Mapa](docs/screenshots/mapa.png) |
+-->
+
+## ¿Qué problema resuelve?
+
+Cuando una mascota se pierde, cada minuto cuenta y crear una cuenta es una barrera. PetRescue permite publicar un reporte en minutos, **sin registro**: cada reporte genera un enlace privado para darle seguimiento, y la plataforma avisa a quienes publicaron reportes parecidos cerca.
+
+## ✨ Funcionalidades principales
+
+- 📍 **Reportes de mascotas perdidas y encontradas** con ubicación en un mapa (Leaflet + OpenStreetMap).
+- 🔎 **Coincidencias automáticas** entre reportes según distancia, colores, raza, sexo, tamaño y fechas, con un puntaje de parecido.
+- 📧 **Avisos por correo** cuando aparece un reporte que podría ser tu mascota.
+- 🗺️ **Búsqueda por cercanía** (radio de 1 a 20 km) y filtros por tipo, especie y color que se pueden compartir por URL.
+- 🐶 **Perfil digital de la mascota** con placa **QR** imprimible.
+- 💬 **Comunidad por temas** (adopción, salud, entrenamiento…) con publicaciones y comentarios.
+- 🏪 **Directorio de servicios** (veterinarias, tiendas, guarderías) y **guías rápidas** de cuidado.
+- 🛡️ **Moderación sin login**: denuncias, ocultamiento automático y enlaces firmados; límite de envíos por IP.
+
+## 🛠️ Tecnologías
+
+| Capa | Tecnología |
+|---|---|
+| Backend | Laravel 12 · PHP 8.2 |
+| Base de datos | PostgreSQL (Supabase) |
+| Frontend | Blade · Tailwind CSS 4 · Vite |
+| Mapas | Leaflet + OpenStreetMap |
+| Archivos | Supabase Storage (compatible con S3) |
+| Despliegue | Vercel |
+| Pruebas | PHPUnit |
+
+La arquitectura sigue los **principios SOLID**: interfaces en `app/Contracts` e implementaciones en `app/Services` (ver la sección *Arquitectura y principios SOLID* más abajo).
+
+## 🚀 Inicio rápido
+
+```bash
+git clone https://github.com/ValentinaAlvarez08/PetRescue.git
+cd PetRescue
+composer install
+cp .env.example .env
+php artisan key:generate
+# Configura la base de datos en .env (ver "Instalación local")
+php artisan storage:link
+php artisan migrate --seed
+php artisan serve
+```
+
+Los requisitos y la configuración de la base de datos están en la sección [Instalación local](#instalación-local).
+
+## 👥 Equipo
+
+- Valentina Alvarez Solarte
+- Juan David Delgado Muñoz
+- Carlos Andres Quenan Alderete
+- Victor Manuel Velasquez Benavides
+
+---
+
+## 📋 Documentación técnica
+
+### Sprint 1 — HU1, HU2, HU3
 
 - **HU1**: reportar mascota perdida sin necesidad de crear cuenta.
 - **HU2**: reportar mascota encontrada sin necesidad de crear cuenta.
@@ -11,7 +82,7 @@ Plataforma para reportar y reencontrar mascotas perdidas, sin necesidad de regis
 Cada reporte genera un enlace privado con token (UUID) que su autor usa para
 darle seguimiento, evitando la necesidad de login.
 
-## Sprint 2 — Comunidad (HU-13, HU-14, HU-15, HU-16, HU-06)
+### Sprint 2 — Comunidad (HU-13, HU-14, HU-15, HU-16, HU-06)
 
 - **HU-13**: formulario guiado en 3 pasos. Solo permite perros, gatos, conejos, aves y hámsteres/cobayos;
   raza según la especie, colores predefinidos (máx. 3), sexo, tamaño (perros) y fecha de los últimos 90 días.
@@ -28,7 +99,7 @@ darle seguimiento, evitando la necesidad de login.
 
 Pruebas: `php artisan test` (incluye `tests/Feature/Sprint2Test.php`).
 
-## Sprint 3 — Comunidad por temas, comentarios y filtros (HU-17, HU-18, HU-04)
+### Sprint 3 — Comunidad por temas, comentarios y filtros (HU-17, HU-18, HU-04)
 
 - **HU-17**: los espacios `/comunidad/{tema}` (rescatadas, reactivas, entrenamiento, salud, alimentación, adopción)
   ya permiten publicar. "Nueva publicación" pide apodo, título (máx. 120), texto (20 a 2000) y foto opcional
@@ -52,7 +123,7 @@ Tablas nuevas: `posts` y `comments` (migraciones `2026_10_13_*`).
 
 Pruebas: `php artisan test` (incluye `tests/Feature/Sprint3Test.php`).
 
-## Sprint 4 — Coincidencias, edición, denuncias, perfil digital, negocios y guías (HU-05, HU-08, HU-07, HU-20, HU-10, HU-19, HU-21)
+### Sprint 4 — Coincidencias, edición, denuncias, perfil digital, negocios y guías (HU-05, HU-08, HU-07, HU-20, HU-10, HU-19, HU-21)
 
 - **HU-05**: cada reporte activo muestra los reportes del tipo contrario que podrían ser la misma mascota (misma especie,
   a menos de 10 km y con fechas compatibles), con un puntaje de parecido y las razones ("Mismo color", "A 1,2 km"...).
@@ -86,7 +157,7 @@ Tablas nuevas: `pet_profiles`, `report_matches` y `content_flags` (migraciones `
 
 Pruebas: `php artisan test` (incluye `tests/Feature/Sprint4Part2Test.php`).
 
-## Arquitectura y principios SOLID
+### Arquitectura y principios SOLID
 
 El código separa **qué se necesita** (interfaces en `app/Contracts`) de **cómo se hace** (servicios en
 `app/Services`). `AppServiceProvider::register()` decide qué implementación usar, así que cambiar una
@@ -118,14 +189,14 @@ distancia exacta, así no se cargan todos los reportes en memoria.
 
 Pruebas de la arquitectura: `tests/Feature/ArchitectureTest.php`.
 
-## Seguridad
+### Seguridad
 
 - **Límite de envíos por IP** (no hay login): publicar reportes, perfiles, publicaciones, negocios y suscripciones
   10/min; comentarios y "Me sirvió" 30/min; denuncias 10/min; API JSON 60/min. Se ajustan en
   `AppServiceProvider::configureRateLimiting()`.
 - Las credenciales van solo en `.env` (ignorado por git). Nunca subas archivos con contraseñas.
 
-## Fotos (Supabase Storage)
+### Fotos (Supabase Storage)
 
 Las fotos de reportes, perfiles y publicaciones se guardan en el disco que indique `PHOTOS_DISK`:
 `public` (carpeta `storage/app/public`, para trabajar en local) o `supabase` (bucket de Supabase Storage,
@@ -138,18 +209,18 @@ obligatorio en Vercel porque allí no se puede escribir en disco).
 
 Las fotos de ejemplo (`public/images/seed`) se sirven siempre desde la aplicación.
 
-## Correos y colas
+### Correos y colas
 
 Los correos se envían en cola. Con `QUEUE_CONNECTION=database` deja corriendo `php artisan queue:work`;
 en un hosting sin worker (por ejemplo Vercel) usa `QUEUE_CONNECTION=sync`.
 
-## Requisitos
+### Requisitos
 
 - PHP 8.2+ con las extensiones `pdo_pgsql` y `pgsql` activas (en XAMPP: quitar el `;` de
   `extension=pdo_pgsql` y `extension=pgsql` en `php.ini`), Composer
 - Base de datos PostgreSQL en [Supabase](https://supabase.com) (o SQLite para trabajar sin conexión)
 
-## Instalación local
+### Instalación local
 
 ```bash
 composer install
@@ -168,9 +239,3 @@ php artisan serve
 ```
 
 Abre `http://127.0.0.1:8000`.
-
-## Colaboradores
-- Valentina Alvarez Solarte
-- Juan David Delgado Muñoz
-- Carlos Andres Quenan Alderete
-- Victor Manuel Velasquez Benavides
